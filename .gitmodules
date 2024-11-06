@@ -1,0 +1,9 @@
+[submodule "isr"]
+	path = isr
+	url = git@github.com:vmi-rs/isr.git
+[submodule "vmi"]
+	path = vmi
+	url = git@github.com:vmi-rs/vmi.git
+[submodule "xen"]
+	path = xen
+	url = git@github.com:vmi-rs/xen.git
