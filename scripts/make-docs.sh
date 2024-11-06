@@ -9,6 +9,7 @@ sed -n '/{{readme}}/q;p' "${1}/README.tpl" > "${1}/README.md"
 cargo readme -r "${1}" --no-indent-headings             \
                        --no-template                    \
                        --no-title                       \
+                       --no-license                     \
     | sed -E '/^(\[[a-zA-Z0-9_.:!()`]+\]: .*)$/d'       \
     | sed -E '/^[ ]*#$/d'                               \
     | sed -E '/^[ ]+# .*/d'                             \

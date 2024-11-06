@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# Get path to the make-docs.sh script in the same directory as this script
-MAKE_DOCS="$(dirname "${0}")/make-docs.sh"
+VMI_RS_DIR="$(realpath "$(dirname "${0}")/..")"
+MAKE_DOCS="scripts/make-docs.sh"
+
+pushd "${VMI_RS_DIR}" > /dev/null
 
 "${MAKE_DOCS}" "isr"
 "${MAKE_DOCS}" "isr/crates/isr-cache"
@@ -36,3 +38,5 @@ cp "vmi/crates/vmi-driver-xen/README.md" "vmi/docs/vmi-driver-xen.md"
 cp "vmi/crates/vmi-os-linux/README.md" "vmi/docs/vmi-os-linux.md"
 cp "vmi/crates/vmi-os-windows/README.md" "vmi/docs/vmi-os-windows.md"
 cp "vmi/crates/vmi-utils/README.md" "vmi/docs/vmi-utils.md"
+
+popd > /dev/null
