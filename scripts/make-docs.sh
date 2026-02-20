@@ -1,20 +1,45 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-echo "Generating README.md for ${1}"
+VMI_RS_DIR="$(realpath "$(dirname "${0}")/..")"
+MAKE_README="scripts/make-readme.sh"
 
-# Read the template file up to the {{readme}} line
-sed -n '/{{readme}}/q;p' "${1}/README.tpl" > "${1}/README.md"
+pushd "${VMI_RS_DIR}" > /dev/null
 
-# Append the output of the cargo readme command
-cargo readme -r "${1}" --no-indent-headings             \
-                       --no-template                    \
-                       --no-title                       \
-                       --no-license                     \
-    | sed -E '/^(\[[a-zA-Z0-9_.:!()`]+\]: .*)$/d'       \
-    | sed -E '/^[ ]*#$/d'                               \
-    | sed -E '/^[ ]+# .*/d'                             \
-    | sed -E 's/```rust(,[a-z_]+)?$/```rust,ignore/'    \
-    >> "${1}/README.md"
+"${MAKE_README}" "isr"
+"${MAKE_README}" "isr/crates/isr-cache"
+"${MAKE_README}" "isr/crates/isr-core"
+"${MAKE_README}" "isr/crates/isr-dl-linux"
+"${MAKE_README}" "isr/crates/isr-dl-pdb"
+"${MAKE_README}" "isr/crates/isr-dwarf"
+"${MAKE_README}" "isr/crates/isr-macros"
+"${MAKE_README}" "isr/crates/isr-pdb"
+cp "isr/crates/isr-cache/README.md" "isr/docs/isr-cache.md"
+cp "isr/crates/isr-core/README.md" "isr/docs/isr-core.md"
+cp "isr/crates/isr-dl-linux/README.md" "isr/docs/isr-dl-linux.md"
+cp "isr/crates/isr-dl-pdb/README.md" "isr/docs/isr-dl-pdb.md"
+cp "isr/crates/isr-dwarf/README.md" "isr/docs/isr-dwarf.md"
+cp "isr/crates/isr-macros/README.md" "isr/docs/isr-macros.md"
+cp "isr/crates/isr-pdb/README.md" "isr/docs/isr-pdb.md"
 
-# Append the rest of the template file
-sed -n '/{{readme}}/,$p' "${1}/README.tpl" | tail -n +2 >> "${1}/README.md"
+"${MAKE_README}" "vmi"
+"${MAKE_README}" "vmi/crates/vmi-arch-amd64"
+"${MAKE_README}" "vmi/crates/vmi-core"
+"${MAKE_README}" "vmi/crates/vmi-driver-xen"
+# "${MAKE_README}" "vmi/crates/vmi-macros"
+"${MAKE_README}" "vmi/crates/vmi-os-linux"
+"${MAKE_README}" "vmi/crates/vmi-os-windows"
+"${MAKE_README}" "vmi/crates/vmi-utils"
+cp "vmi/crates/vmi-arch-amd64/README.md" "vmi/docs/vmi-arch-amd64.md"
+cp "vmi/crates/vmi-core/README.md" "vmi/docs/vmi-core.md"
+cp "vmi/crates/vmi-core/docs/arch.md" "vmi/docs/vmi-core-arch.md"
+cp "vmi/crates/vmi-core/docs/os.md" "vmi/docs/vmi-core-os.md"
+cp "vmi/crates/vmi-driver-kdmp/README.md" "vmi/docs/vmi-driver-kdmp.md"
+cp "vmi/crates/vmi-driver-xen/README.md" "vmi/docs/vmi-driver-xen.md"
+cp "vmi/crates/vmi-driver-xen-core-dump/README.md" "vmi/docs/vmi-driver-xen-core-dump.md"
+# cp "vmi/crates/vmi-macros/README.md" "vmi/docs/vmi-macros.md"
+cp "vmi/crates/vmi-os-linux/README.md" "vmi/docs/vmi-os-linux.md"
+cp "vmi/crates/vmi-os-windows/README.md" "vmi/docs/vmi-os-windows.md"
+cp "vmi/crates/vmi-utils/README.md" "vmi/docs/vmi-utils.md"
+
+popd > /dev/null
