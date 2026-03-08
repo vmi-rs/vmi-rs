@@ -142,6 +142,19 @@ impl KvmVmiSession {
         Ok(())
     }
 
+    /// Switch a vCPU to a specific view (including view 0).
+    pub fn switch_view(&self, vcpu_id: u32, view_id: u32) -> Result<(), KvmError> {
+        let sw = kvm_sys::kvm_vmi_switch_view { vcpu_id, view_id };
+        unsafe {
+            kvm_ioctl(
+                self.fd(),
+                consts::KVM_VMI_SWITCH_VIEW,
+                &sw as *const _ as u64,
+            )?;
+        }
+        Ok(())
+    }
+
     /// Inject an event into a vCPU.
     pub fn inject_event(
         &self,
