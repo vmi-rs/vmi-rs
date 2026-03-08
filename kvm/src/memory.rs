@@ -3,16 +3,16 @@
 use std::ops::{Deref, DerefMut};
 use std::os::fd::RawFd;
 
-use crate::consts::{self, PAGE_SIZE};
+use crate::consts::PAGE_SIZE;
 use crate::error::KvmError;
 
 bitflags::bitflags! {
     /// Memory access permissions.
     #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
     pub struct MemoryAccess: u8 {
-        const READ = consts::KVM_VMI_ACCESS_R;
-        const WRITE = consts::KVM_VMI_ACCESS_W;
-        const EXECUTE = consts::KVM_VMI_ACCESS_X;
+        const READ = kvm_sys::KVM_VMI_ACCESS_R as u8;
+        const WRITE = kvm_sys::KVM_VMI_ACCESS_W as u8;
+        const EXECUTE = kvm_sys::KVM_VMI_ACCESS_X as u8;
     }
 }
 

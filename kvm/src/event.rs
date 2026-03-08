@@ -1,7 +1,5 @@
 //! Safe event types converted from ring event data.
 
-use crate::consts;
-
 /// Event reason extracted from a ring event.
 #[derive(Debug, Clone, Copy)]
 pub enum KvmVmiEventReason {
@@ -49,14 +47,14 @@ impl KvmVmiEvent {
     pub unsafe fn from_raw(raw: &kvm_sys::kvm_vmi_ring_event) -> Option<Self> {
         let reason = unsafe {
             match raw.type_ {
-                consts::KVM_VMI_EVENT_MEM_ACCESS => {
+                kvm_sys::KVM_VMI_EVENT_MEM_ACCESS => {
                     let d = &raw.u.mem_access;
                     KvmVmiEventReason::MemoryAccess {
                         gpa: d.gpa,
                         access: d.access,
                     }
                 }
-                consts::KVM_VMI_EVENT_CR => {
+                kvm_sys::KVM_VMI_EVENT_CR => {
                     let d = &raw.u.cr;
                     KvmVmiEventReason::Cr {
                         index: d.index,
@@ -64,7 +62,7 @@ impl KvmVmiEvent {
                         new_value: d.new_value,
                     }
                 }
-                consts::KVM_VMI_EVENT_MSR => {
+                kvm_sys::KVM_VMI_EVENT_MSR => {
                     let d = &raw.u.msr;
                     KvmVmiEventReason::Msr {
                         index: d.index,
@@ -72,38 +70,38 @@ impl KvmVmiEvent {
                         new_value: d.new_value,
                     }
                 }
-                consts::KVM_VMI_EVENT_CPUID => {
+                kvm_sys::KVM_VMI_EVENT_CPUID => {
                     let d = &raw.u.cpuid;
                     KvmVmiEventReason::Cpuid {
                         leaf: d.leaf,
                         subleaf: d.subleaf,
                     }
                 }
-                consts::KVM_VMI_EVENT_BREAKPOINT => {
+                kvm_sys::KVM_VMI_EVENT_BREAKPOINT => {
                     let d = &raw.u.breakpoint;
                     KvmVmiEventReason::Breakpoint {
                         gpa: d.gpa,
                         insn_len: d.insn_len,
                     }
                 }
-                consts::KVM_VMI_EVENT_SINGLESTEP => {
+                kvm_sys::KVM_VMI_EVENT_SINGLESTEP => {
                     let d = &raw.u.singlestep;
                     KvmVmiEventReason::Singlestep { gpa: d.gpa }
                 }
-                consts::KVM_VMI_EVENT_DEBUG => {
+                kvm_sys::KVM_VMI_EVENT_DEBUG => {
                     let d = &raw.u.debug;
                     KvmVmiEventReason::Debug {
                         pending_dbg: d.pending_dbg,
                     }
                 }
-                consts::KVM_VMI_EVENT_DESC_ACCESS => {
+                kvm_sys::KVM_VMI_EVENT_DESC_ACCESS => {
                     let d = &raw.u.desc_access;
                     KvmVmiEventReason::DescAccess {
                         descriptor: d.descriptor,
                         is_write: d.is_write != 0,
                     }
                 }
-                consts::KVM_VMI_EVENT_INTERRUPT => {
+                kvm_sys::KVM_VMI_EVENT_INTERRUPT => {
                     let d = &raw.u.interrupt;
                     KvmVmiEventReason::Interrupt {
                         vector: d.vector,
@@ -111,7 +109,7 @@ impl KvmVmiEvent {
                         cr2: d.cr2,
                     }
                 }
-                consts::KVM_VMI_EVENT_IO => {
+                kvm_sys::KVM_VMI_EVENT_IO => {
                     let d = &raw.u.io;
                     KvmVmiEventReason::Io {
                         port: d.port,
