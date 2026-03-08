@@ -1,0 +1,18 @@
+[package]
+name = "libkvm-sys"
+version = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+publish = { workspace = true }
+rust-version = { workspace = true }
+description = "Rust FFI bindings for KVM VMI"
+build = "build.rs"
+
+[lib]
+name = "kvm_sys"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.72.1"
