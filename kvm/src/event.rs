@@ -48,14 +48,14 @@ impl KvmVmiEvent {
         let reason = unsafe {
             match raw.type_ {
                 kvm_sys::KVM_VMI_EVENT_MEM_ACCESS => {
-                    let d = &raw.u.mem_access;
+                    let d = &raw.__bindgen_anon_1.mem_access;
                     KvmVmiEventReason::MemoryAccess {
                         gpa: d.gpa,
                         access: d.access,
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_CR => {
-                    let d = &raw.u.cr;
+                    let d = &raw.__bindgen_anon_1.arch.cr;
                     KvmVmiEventReason::Cr {
                         index: d.index,
                         old_value: d.old_value,
@@ -63,7 +63,7 @@ impl KvmVmiEvent {
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_MSR => {
-                    let d = &raw.u.msr;
+                    let d = &raw.__bindgen_anon_1.arch.msr;
                     KvmVmiEventReason::Msr {
                         index: d.index,
                         old_value: d.old_value,
@@ -71,38 +71,38 @@ impl KvmVmiEvent {
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_CPUID => {
-                    let d = &raw.u.cpuid;
+                    let d = &raw.__bindgen_anon_1.arch.cpuid;
                     KvmVmiEventReason::Cpuid {
                         leaf: d.leaf,
                         subleaf: d.subleaf,
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_BREAKPOINT => {
-                    let d = &raw.u.breakpoint;
+                    let d = &raw.__bindgen_anon_1.arch.breakpoint;
                     KvmVmiEventReason::Breakpoint {
                         gpa: d.gpa,
                         insn_len: d.insn_len,
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_SINGLESTEP => {
-                    let d = &raw.u.singlestep;
+                    let d = &raw.__bindgen_anon_1.singlestep;
                     KvmVmiEventReason::Singlestep { gpa: d.gpa }
                 }
                 kvm_sys::KVM_VMI_EVENT_DEBUG => {
-                    let d = &raw.u.debug;
+                    let d = &raw.__bindgen_anon_1.arch.debug;
                     KvmVmiEventReason::Debug {
                         pending_dbg: d.pending_dbg,
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_DESC_ACCESS => {
-                    let d = &raw.u.desc_access;
+                    let d = &raw.__bindgen_anon_1.arch.desc_access;
                     KvmVmiEventReason::DescAccess {
                         descriptor: d.descriptor,
                         is_write: d.is_write != 0,
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_INTERRUPT => {
-                    let d = &raw.u.interrupt;
+                    let d = &raw.__bindgen_anon_1.arch.interrupt;
                     KvmVmiEventReason::Interrupt {
                         vector: d.vector,
                         error_code: d.error_code,
@@ -110,7 +110,7 @@ impl KvmVmiEvent {
                     }
                 }
                 kvm_sys::KVM_VMI_EVENT_IO => {
-                    let d = &raw.u.io;
+                    let d = &raw.__bindgen_anon_1.arch.io;
                     KvmVmiEventReason::Io {
                         port: d.port,
                         bytes: d.bytes,
