@@ -5,6 +5,7 @@ pub mod memory;
 pub mod monitor;
 pub mod ring;
 pub mod session;
+pub mod vcpu;
 pub mod view;
 
 pub use kvm_sys as sys;
@@ -16,5 +17,6 @@ pub use self::{
     monitor::KvmVmiMonitor,
     ring::KvmVmiRing,
     session::KvmVmiSession,
+    vcpu::MsrValues,
     view::KvmVmiView,
 };

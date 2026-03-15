@@ -34,6 +34,34 @@ fn main() {
         .derive_debug(true)
         .derive_default(true)
         .wrap_unsafe_ops(true)
+        // Only generate VMI types/constants and our ioctl evaluator constants.
+        // Without allowlists, including linux/kvm.h would flood the output
+        // with all of KVM's types and ioctls.
+        //
+        // Types: all kvm_vmi_* structs and unions
+        .allowlist_type("kvm_vmi_.*")
+        // Also need kvm_regs, kvm_sregs, and kvm_msr_entry for register access
+        .allowlist_type("kvm_regs")
+        .allowlist_type("kvm_sregs")
+        .allowlist_type("kvm_segment")
+        .allowlist_type("kvm_dtable")
+        .allowlist_type("kvm_msr_entry")
+        // Constants: KVM_VMI_* defines (event types, access flags, response
+        // flags, etc.) and KVM_CAP_VMI* capabilities
+        .allowlist_var("KVM_VMI_.*")
+        .allowlist_var("KVM_CAP_VMI.*")
+        .allowlist_var("KVM_CAP_NR_VCPUS")
+        .allowlist_var("KVM_CAP_MAX_VCPUS")
+        .allowlist_var("KVM_CAP_NR_MEMSLOTS")
+        // Ioctl numbers: our static const evaluators from wrapper.h
+        .allowlist_var("KVM_CREATE_VMI_IOCTL")
+        .allowlist_var("KVM_GET_REGS_IOCTL")
+        .allowlist_var("KVM_SET_REGS_IOCTL")
+        .allowlist_var("KVM_GET_SREGS_IOCTL")
+        .allowlist_var("KVM_SET_SREGS_IOCTL")
+        .allowlist_var("KVM_GET_MSRS_IOCTL")
+        .allowlist_var("KVM_SET_MSRS_IOCTL")
+        .allowlist_var("KVM_CHECK_EXTENSION_IOCTL")
         .generate()
         .expect("Unable to generate bindings");
 

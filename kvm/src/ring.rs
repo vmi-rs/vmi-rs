@@ -153,6 +153,22 @@ impl KvmVmiRing {
             libc::write(self.ack_fd.as_raw_fd(), &val as *const _ as _, 8)
         };
     }
+
+    /// Acknowledge an event via ioctl - advances req_cons in kernel and wakes vCPU.
+    pub fn ack_event_ioctl(&self) -> Result<(), KvmError> {
+        let mut vcpu = kvm_sys::kvm_vmi_vcpu {
+            vcpu_id: self.vcpu_id,
+            pad: 0,
+        };
+        unsafe {
+            kvm_ioctl(
+                self.session.fd(),
+                consts::KVM_VMI_ACK_EVENT,
+                &mut vcpu as *mut _ as u64,
+            )?;
+        }
+        Ok(())
+    }
 }
 
 impl Drop for KvmVmiRing {

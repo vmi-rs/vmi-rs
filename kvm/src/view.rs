@@ -40,11 +40,11 @@ impl KvmVmiView {
         self.view_id
     }
 
-    /// Switch a vCPU to this view.
-    pub fn switch(&self, vcpu_id: u32) -> Result<(), KvmError> {
+    /// Switch all vCPUs to this view.
+    pub fn switch(&self) -> Result<(), KvmError> {
         let sw = kvm_sys::kvm_vmi_switch_view {
-            vcpu_id,
             view_id: self.view_id,
+            pad: 0,
         };
         unsafe {
             kvm_ioctl(
@@ -61,8 +61,12 @@ impl KvmVmiView {
         let mut ma = kvm_sys::kvm_vmi_mem_access {
             view_id: self.view_id,
             nr: 1,
-            gfn,
-            ..Default::default()
+            __bindgen_anon_1: kvm_sys::kvm_vmi_mem_access__bindgen_ty_1 {
+                __bindgen_anon_1: kvm_sys::kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1 {
+                    gfn,
+                    ..Default::default()
+                },
+            },
         };
         unsafe {
             kvm_ioctl(
@@ -71,7 +75,7 @@ impl KvmVmiView {
                 &mut ma as *mut _ as u64,
             )?;
         }
-        Ok(ma.access)
+        Ok(unsafe { ma.__bindgen_anon_1.__bindgen_anon_1.access })
     }
 
     /// Set the access permissions for a GFN in this view.
@@ -79,9 +83,13 @@ impl KvmVmiView {
         let ma = kvm_sys::kvm_vmi_mem_access {
             view_id: self.view_id,
             nr: 1,
-            access,
-            gfn,
-            ..Default::default()
+            __bindgen_anon_1: kvm_sys::kvm_vmi_mem_access__bindgen_ty_1 {
+                __bindgen_anon_1: kvm_sys::kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1 {
+                    gfn,
+                    access,
+                    ..Default::default()
+                },
+            },
         };
         unsafe {
             kvm_ioctl(

@@ -126,25 +126,9 @@ impl KvmVmiSession {
         Ok(())
     }
 
-    /// Enable or disable singlestepping for a vCPU.
-    pub fn singlestep(&self, vcpu_id: u32, enable: bool) -> Result<(), KvmError> {
-        let ss = kvm_sys::kvm_vmi_singlestep {
-            vcpu_id,
-            enable: u32::from(enable),
-        };
-        unsafe {
-            kvm_ioctl(
-                self.fd(),
-                consts::KVM_VMI_SINGLESTEP,
-                &ss as *const _ as u64,
-            )?;
-        }
-        Ok(())
-    }
-
-    /// Switch a vCPU to a specific view (including view 0).
-    pub fn switch_view(&self, vcpu_id: u32, view_id: u32) -> Result<(), KvmError> {
-        let sw = kvm_sys::kvm_vmi_switch_view { vcpu_id, view_id };
+    /// Switch all vCPUs to a specific view (including view 0).
+    pub fn switch_view(&self, view_id: u32) -> Result<(), KvmError> {
+        let sw = kvm_sys::kvm_vmi_switch_view { view_id, pad: 0 };
         unsafe {
             kvm_ioctl(
                 self.fd(),
@@ -169,7 +153,8 @@ impl KvmVmiSession {
             vcpu_id,
             vector,
             type_: typ,
-            padding: 0,
+            insn_len: 0,
+            pad: 0,
             error_code,
             has_error: u32::from(has_error),
             cr2,
