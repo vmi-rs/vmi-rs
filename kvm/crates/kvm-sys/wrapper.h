@@ -51,20 +51,37 @@ static const unsigned long KVM_VMI_CHANGE_GFN_IOCTL          = KVM_VMI_CHANGE_GF
  * Arch event IDs use KVM_VMI_ARCH_EVENT() macro which bindgen can't
  * evaluate directly. Force evaluation via static const.
  */
+static const unsigned int KVM_VMI_EVENT_BREAKPOINT_EVAL      = KVM_VMI_EVENT_BREAKPOINT;
+static const unsigned int KVM_VMI_NUM_EVENTS_EVAL            = KVM_VMI_NUM_EVENTS;
+
+#if defined(__x86_64__)
+
+/* x86-specific arch event evaluations */
 static const unsigned int KVM_VMI_EVENT_CR_EVAL              = KVM_VMI_EVENT_CR;
 static const unsigned int KVM_VMI_EVENT_MSR_EVAL             = KVM_VMI_EVENT_MSR;
 static const unsigned int KVM_VMI_EVENT_CPUID_EVAL           = KVM_VMI_EVENT_CPUID;
-static const unsigned int KVM_VMI_EVENT_BREAKPOINT_EVAL      = KVM_VMI_EVENT_BREAKPOINT;
 static const unsigned int KVM_VMI_EVENT_DEBUG_EVAL           = KVM_VMI_EVENT_DEBUG;
 static const unsigned int KVM_VMI_EVENT_DESC_ACCESS_EVAL     = KVM_VMI_EVENT_DESC_ACCESS;
 static const unsigned int KVM_VMI_EVENT_IO_EVAL              = KVM_VMI_EVENT_IO;
-static const unsigned int KVM_VMI_NUM_EVENTS_EVAL            = KVM_VMI_NUM_EVENTS;
 
-/* vCPU ioctls (register access via duplicated vCPU fds) */
+/* x86 vCPU ioctls (register access via duplicated vCPU fds) */
 static const unsigned long KVM_GET_REGS_IOCTL                = KVM_GET_REGS;
 static const unsigned long KVM_SET_REGS_IOCTL                = KVM_SET_REGS;
 static const unsigned long KVM_GET_SREGS_IOCTL               = KVM_GET_SREGS;
 static const unsigned long KVM_SET_SREGS_IOCTL               = KVM_SET_SREGS;
 static const unsigned long KVM_GET_MSRS_IOCTL                = KVM_GET_MSRS;
 static const unsigned long KVM_SET_MSRS_IOCTL                = KVM_SET_MSRS;
+
+#endif /* __x86_64__ */
+
+#if defined(__aarch64__)
+
+/* arm64-specific arch event evaluations */
+static const unsigned int KVM_VMI_EVENT_SYSREG_EVAL          = KVM_VMI_EVENT_SYSREG;
+
+/* arm64 vCPU ioctls (register access via KVM_GET_ONE_REG) */
+static const unsigned long KVM_GET_ONE_REG_IOCTL             = KVM_GET_ONE_REG;
+
+#endif /* __aarch64__ */
+
 static const unsigned long KVM_CHECK_EXTENSION_IOCTL         = KVM_CHECK_EXTENSION;

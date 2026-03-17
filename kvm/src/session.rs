@@ -139,7 +139,8 @@ impl KvmVmiSession {
         Ok(())
     }
 
-    /// Inject an event into a vCPU.
+    /// Inject an event into a vCPU (x86: exception/interrupt/NMI).
+    #[cfg(target_arch = "x86_64")]
     pub fn inject_event(
         &self,
         vcpu_id: u32,
@@ -158,6 +159,29 @@ impl KvmVmiSession {
             error_code,
             has_error: u32::from(has_error),
             cr2,
+        };
+        unsafe {
+            kvm_ioctl(
+                self.fd(),
+                consts::KVM_VMI_INJECT_EVENT,
+                &inject as *const _ as u64,
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Inject an event into a vCPU (arm64: synchronous exception or SError).
+    #[cfg(target_arch = "aarch64")]
+    pub fn inject_event(
+        &self,
+        vcpu_id: u32,
+        typ: u32,
+        esr: u64,
+    ) -> Result<(), KvmError> {
+        let inject = kvm_sys::kvm_vmi_inject_event {
+            vcpu_id,
+            type_: typ,
+            esr,
         };
         unsafe {
             kvm_ioctl(

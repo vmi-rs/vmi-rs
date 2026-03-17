@@ -46,13 +46,24 @@ pub const KVM_VMI_PAUSE_VCPU: libc::c_ulong = kvm_sys::KVM_VMI_PAUSE_VCPU_IOCTL;
 pub const KVM_VMI_UNPAUSE_VCPU: libc::c_ulong = kvm_sys::KVM_VMI_UNPAUSE_VCPU_IOCTL;
 pub const KVM_VMI_INJECT_EVENT: libc::c_ulong = kvm_sys::KVM_VMI_INJECT_EVENT_IOCTL;
 
-// vCPU-level ioctls (register access via duplicated vCPU fds)
+// vCPU-level ioctls (register access via duplicated vCPU fds) — x86 only
+#[cfg(target_arch = "x86_64")]
 pub const KVM_GET_REGS: libc::c_ulong = kvm_sys::KVM_GET_REGS_IOCTL;
+#[cfg(target_arch = "x86_64")]
 pub const KVM_SET_REGS: libc::c_ulong = kvm_sys::KVM_SET_REGS_IOCTL;
+#[cfg(target_arch = "x86_64")]
 pub const KVM_GET_SREGS: libc::c_ulong = kvm_sys::KVM_GET_SREGS_IOCTL;
+#[cfg(target_arch = "x86_64")]
 pub const KVM_SET_SREGS: libc::c_ulong = kvm_sys::KVM_SET_SREGS_IOCTL;
+#[cfg(target_arch = "x86_64")]
 pub const KVM_GET_MSRS: libc::c_ulong = kvm_sys::KVM_GET_MSRS_IOCTL;
+#[cfg(target_arch = "x86_64")]
 pub const KVM_SET_MSRS: libc::c_ulong = kvm_sys::KVM_SET_MSRS_IOCTL;
+
+// vCPU-level ioctl (register access via KVM_GET_ONE_REG) — arm64
+#[cfg(target_arch = "aarch64")]
+pub const KVM_GET_ONE_REG: libc::c_ulong = kvm_sys::KVM_GET_ONE_REG_IOCTL;
+
 pub const KVM_CHECK_EXTENSION: libc::c_ulong = kvm_sys::KVM_CHECK_EXTENSION_IOCTL;
 
 // ---------------------------------------------------------------------------
