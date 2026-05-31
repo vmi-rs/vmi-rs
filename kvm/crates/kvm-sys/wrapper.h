@@ -30,3 +30,20 @@ static const unsigned long kvm_sys_KVM_GET_MSRS = KVM_GET_MSRS;
 static const unsigned long kvm_sys_KVM_SET_MSRS = KVM_SET_MSRS;
 static const unsigned long kvm_sys_KVM_GET_DEBUGREGS = KVM_GET_DEBUGREGS;
 static const unsigned long kvm_sys_KVM_SET_DEBUGREGS = KVM_SET_DEBUGREGS;
+
+/* Force arch event ids and invalid-gfn (function-like / cast macros) visible. */
+static const unsigned kvm_sys_KVM_VMI_EVENT_CR = KVM_VMI_EVENT_CR;
+static const unsigned kvm_sys_KVM_VMI_EVENT_MSR = KVM_VMI_EVENT_MSR;
+static const unsigned kvm_sys_KVM_VMI_EVENT_CPUID = KVM_VMI_EVENT_CPUID;
+static const unsigned kvm_sys_KVM_VMI_EVENT_BREAKPOINT = KVM_VMI_EVENT_BREAKPOINT;
+static const unsigned kvm_sys_KVM_VMI_EVENT_DEBUG = KVM_VMI_EVENT_DEBUG;
+static const unsigned kvm_sys_KVM_VMI_EVENT_DESC_ACCESS = KVM_VMI_EVENT_DESC_ACCESS;
+static const unsigned kvm_sys_KVM_VMI_EVENT_IO = KVM_VMI_EVENT_IO;
+/*
+ * KVM_VMI_INVALID_GFN is `~(__u64)0`, which bindgen cannot constant-fold as an
+ * unsigned 64-bit static (the value exceeds i64 and falls back to a linkage
+ * symbol). Casting to a signed long long folds to -1, which bindgen emits as a
+ * `pub const`; callers recover the sentinel with `as u64`. The value still
+ * comes from the kernel header macro.
+ */
+static const long long kvm_sys_KVM_VMI_INVALID_GFN = (long long)(KVM_VMI_INVALID_GFN);
