@@ -1,6 +1,7 @@
 //! Safe bindings for the KVM VMI uAPI.
 
 pub mod access;
+pub mod arch;
 pub mod attach;
 pub mod core;
 pub mod error;
