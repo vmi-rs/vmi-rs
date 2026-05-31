@@ -17,12 +17,12 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 // downstream callers. Only the names are rewritten here; every value still
 // comes from the kernel headers via bindgen.
 pub use self::{
-    kvm_sys_KVM_CREATE_VMI as KVM_CREATE_VMI,
-    kvm_sys_KVM_GET_DEBUGREGS as KVM_GET_DEBUGREGS, kvm_sys_KVM_GET_MSRS as KVM_GET_MSRS,
-    kvm_sys_KVM_GET_REGS as KVM_GET_REGS, kvm_sys_KVM_GET_SREGS as KVM_GET_SREGS,
-    kvm_sys_KVM_SET_DEBUGREGS as KVM_SET_DEBUGREGS, kvm_sys_KVM_SET_MSRS as KVM_SET_MSRS,
-    kvm_sys_KVM_SET_REGS as KVM_SET_REGS, kvm_sys_KVM_SET_SREGS as KVM_SET_SREGS,
-    kvm_sys_KVM_VMI_ACK_EVENT as KVM_VMI_ACK_EVENT, kvm_sys_KVM_VMI_ALLOC_GFN as KVM_VMI_ALLOC_GFN,
+    kvm_sys_KVM_CREATE_VMI as KVM_CREATE_VMI, kvm_sys_KVM_GET_DEBUGREGS as KVM_GET_DEBUGREGS,
+    kvm_sys_KVM_GET_MSRS as KVM_GET_MSRS, kvm_sys_KVM_GET_REGS as KVM_GET_REGS,
+    kvm_sys_KVM_GET_SREGS as KVM_GET_SREGS, kvm_sys_KVM_SET_DEBUGREGS as KVM_SET_DEBUGREGS,
+    kvm_sys_KVM_SET_MSRS as KVM_SET_MSRS, kvm_sys_KVM_SET_REGS as KVM_SET_REGS,
+    kvm_sys_KVM_SET_SREGS as KVM_SET_SREGS, kvm_sys_KVM_VMI_ACK_EVENT as KVM_VMI_ACK_EVENT,
+    kvm_sys_KVM_VMI_ALLOC_GFN as KVM_VMI_ALLOC_GFN,
     kvm_sys_KVM_VMI_CHANGE_GFN as KVM_VMI_CHANGE_GFN,
     kvm_sys_KVM_VMI_CONTROL_EVENT as KVM_VMI_CONTROL_EVENT,
     kvm_sys_KVM_VMI_CREATE_VIEW as KVM_VMI_CREATE_VIEW,

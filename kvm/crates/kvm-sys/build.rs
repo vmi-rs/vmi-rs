@@ -15,8 +15,8 @@ fn main() {
         .join("bindings")
         .join("kvm-vmi.rs");
 
-    let use_committed = env::var("DOCS_RS").is_ok()
-        || !headers_path.join("linux/kvm_vmi.h").exists();
+    let use_committed =
+        env::var("DOCS_RS").is_ok() || !headers_path.join("linux/kvm_vmi.h").exists();
 
     if use_committed {
         std::fs::copy(&committed, &out_bindings)
