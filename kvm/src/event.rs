@@ -64,3 +64,60 @@ pub struct KvmVmiEvent {
     /// Why the event fired.
     pub reason: KvmEventReason,
 }
+
+/// What the agent tells the kernel to do when the vCPU resumes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KvmResponseAction {
+    /// Resume normally.
+    Continue,
+
+    /// Suppress the faulting operation.
+    Deny,
+
+    /// Emulate the faulting instruction.
+    Emulate,
+
+    /// Reinject the original interrupt/exception.
+    Reinject,
+
+    /// Single-step one instruction.
+    Singlestep,
+
+    /// Single-step then switch view atomically.
+    FastSinglestep,
+}
+
+/// The agent's response to one event, written back into the slot on `respond`.
+#[derive(Debug, Clone, Copy)]
+pub struct KvmVmiResponse {
+    /// Action to apply on resume.
+    pub action: KvmResponseAction,
+
+    /// Replacement register values, when registers were modified.
+    pub regs: Option<KvmVmiRegs>,
+
+    /// View to switch to on resume, when a switch was requested.
+    pub view_id: Option<u32>,
+}
+
+impl KvmVmiResponse {
+    /// Composes the raw `KVM_VMI_RESPONSE_*` flag word for this response.
+    pub(crate) fn flags(&self) -> u32 {
+        let mut flags = kvm_sys::KVM_VMI_RESPONSE_CONTINUE;
+        match self.action {
+            KvmResponseAction::Continue => {}
+            KvmResponseAction::Deny => flags |= kvm_sys::KVM_VMI_RESPONSE_DENY,
+            KvmResponseAction::Emulate => flags |= kvm_sys::KVM_VMI_RESPONSE_EMULATE,
+            KvmResponseAction::Reinject => flags |= kvm_sys::KVM_VMI_RESPONSE_REINJECT,
+            KvmResponseAction::Singlestep => flags |= kvm_sys::KVM_VMI_RESPONSE_SINGLESTEP,
+            KvmResponseAction::FastSinglestep => flags |= kvm_sys::KVM_VMI_RESPONSE_SINGLESTEP_FAST,
+        }
+        if self.regs.is_some() {
+            flags |= kvm_sys::KVM_VMI_RESPONSE_SET_REGS;
+        }
+        if self.view_id.is_some() {
+            flags |= kvm_sys::KVM_VMI_RESPONSE_SWITCH_VIEW;
+        }
+        flags
+    }
+}

@@ -18,7 +18,10 @@ pub use self::{
     attach::{KvmFds, from_pid},
     core::ViewId,
     error::KvmError,
-    event::{KvmEventReason, KvmMemAccessEvent, KvmSinglestepEvent, KvmVmiEvent, KvmVmiRegs},
+    event::{
+        KvmEventReason, KvmMemAccessEvent, KvmResponseAction, KvmSinglestepEvent, KvmVmiEvent,
+        KvmVmiRegs, KvmVmiResponse,
+    },
     memory::{KvmGuestMemory, KvmMappedPage},
     ring::KvmVmiRing,
     session::KvmVmi,

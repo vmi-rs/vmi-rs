@@ -360,9 +360,6 @@ pub enum KvmEventReasonX86 {
 }
 
 /// Maps the KVM CR index constant to `KvmCr`.
-// Wired into the ring read path by the event-loop migration; until then it is
-// exercised only by `decode_event` and the decode tests.
-#[allow(dead_code)]
 fn cr_from_index(index: u32) -> Option<KvmCr> {
     match index {
         x if x == kvm_sys::KVM_VMI_CR0 => Some(KvmCr::Cr0),
@@ -375,9 +372,6 @@ fn cr_from_index(index: u32) -> Option<KvmCr> {
 
 /// Decodes one ring-slot record into a native event. This is the only place the
 /// `kvm_vmi_ring_event` union is read and every arm is gated by `type_`.
-// The ring read path consumes this in the event-loop migration. For now it is
-// covered by the decode tests below.
-#[allow(dead_code)]
 pub(crate) fn decode_event(slot: &kvm_sys::kvm_vmi_ring_event) -> Result<KvmVmiEvent, KvmError> {
     let regs = KvmVmiRegs::X86(KvmVmiRegsX86::from(&slot.regs));
     let kind = slot.type_;

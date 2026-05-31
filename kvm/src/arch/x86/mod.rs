@@ -11,5 +11,4 @@ pub use self::{
     regs::{KvmDtable, KvmSegment, Registers},
 };
 
-#[allow(unused_imports)]
 pub(crate) use self::event::decode_event;
