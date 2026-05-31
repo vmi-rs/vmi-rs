@@ -6,7 +6,8 @@
     non_upper_case_globals,
     missing_docs,
     unnecessary_transmutes,
-    unsafe_op_in_unsafe_fn
+    unsafe_op_in_unsafe_fn,
+    clippy::missing_safety_doc
 )]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
@@ -32,8 +33,7 @@ pub use self::{
     kvm_sys_KVM_VMI_EVENT_CR as KVM_VMI_EVENT_CR,
     kvm_sys_KVM_VMI_EVENT_DEBUG as KVM_VMI_EVENT_DEBUG,
     kvm_sys_KVM_VMI_EVENT_DESC_ACCESS as KVM_VMI_EVENT_DESC_ACCESS,
-    kvm_sys_KVM_VMI_EVENT_IO as KVM_VMI_EVENT_IO,
-    kvm_sys_KVM_VMI_EVENT_MSR as KVM_VMI_EVENT_MSR,
+    kvm_sys_KVM_VMI_EVENT_IO as KVM_VMI_EVENT_IO, kvm_sys_KVM_VMI_EVENT_MSR as KVM_VMI_EVENT_MSR,
     kvm_sys_KVM_VMI_FREE_GFN as KVM_VMI_FREE_GFN,
     kvm_sys_KVM_VMI_GET_MEM_ACCESS as KVM_VMI_GET_MEM_ACCESS,
     kvm_sys_KVM_VMI_INJECT_EVENT as KVM_VMI_INJECT_EVENT,
