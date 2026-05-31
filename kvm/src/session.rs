@@ -3,6 +3,7 @@
 use std::os::fd::{AsFd, BorrowedFd, FromRawFd, OwnedFd};
 
 use crate::{
+    access::MemAccess,
     core::{ViewId, ioctl_none, ioctl_with_mut_ref, ioctl_with_ref},
     error::KvmError,
 };
@@ -86,9 +87,9 @@ impl KvmVmi {
     }
 
     /// Creates an alternate view, returning its kernel-assigned id.
-    pub fn create_view(&self, default_access: u8) -> Result<ViewId, KvmError> {
+    pub fn create_view(&self, default_access: MemAccess) -> Result<ViewId, KvmError> {
         let mut arg = kvm_sys::kvm_vmi_view {
-            default_access,
+            default_access: default_access.bits(),
             ..Default::default()
         };
         ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_VMI_CREATE_VIEW, &mut arg)?;
@@ -116,7 +117,12 @@ impl KvmVmi {
     }
 
     /// Sets per-GFN access in a view (single GFN).
-    pub fn set_mem_access(&self, view: ViewId, gfn: u64, access: u8) -> Result<(), KvmError> {
+    pub fn set_mem_access(
+        &self,
+        view: ViewId,
+        gfn: u64,
+        access: MemAccess,
+    ) -> Result<(), KvmError> {
         let mut arg = kvm_sys::kvm_vmi_mem_access {
             view_id: view.0,
             nr: 1,
@@ -124,13 +130,13 @@ impl KvmVmi {
         };
         // Writing the single-GFN arm of the union (nr == 1 selects it) is safe.
         arg.__bindgen_anon_1.__bindgen_anon_1.gfn = gfn;
-        arg.__bindgen_anon_1.__bindgen_anon_1.access = access;
+        arg.__bindgen_anon_1.__bindgen_anon_1.access = access.bits();
         ioctl_with_ref(self.fd(), kvm_sys::KVM_VMI_SET_MEM_ACCESS, &arg)?;
         Ok(())
     }
 
     /// Queries per-GFN access in a view (single GFN).
-    pub fn get_mem_access(&self, view: ViewId, gfn: u64) -> Result<u8, KvmError> {
+    pub fn get_mem_access(&self, view: ViewId, gfn: u64) -> Result<MemAccess, KvmError> {
         let mut arg = kvm_sys::kvm_vmi_mem_access {
             view_id: view.0,
             nr: 1,
@@ -140,7 +146,8 @@ impl KvmVmi {
         arg.__bindgen_anon_1.__bindgen_anon_1.gfn = gfn;
         ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_VMI_GET_MEM_ACCESS, &mut arg)?;
         // SAFETY: kernel filled the single-GFN arm.
-        Ok(unsafe { arg.__bindgen_anon_1.__bindgen_anon_1.access })
+        let bits = unsafe { arg.__bindgen_anon_1.__bindgen_anon_1.access };
+        Ok(MemAccess::from_bits_truncate(bits))
     }
 
     /// Remaps `old_gfn` to `new_gfn` in a view.
