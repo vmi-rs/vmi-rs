@@ -26,11 +26,18 @@ pub(crate) enum FdKind {
 impl FdKind {
     /// Classifies a resolved `/proc/<pid>/fd/<n>` symlink target.
     pub(crate) fn classify(target: &str) -> Option<FdKind> {
-        if target.contains("kvm-vm") {
-            return Some(FdKind::Vm);
+        // The per-vCPU and per-VM statistics fds ("kvm-vcpu-stats:N",
+        // "kvm-vm-stats") contain the "kvm-vcpu"/"kvm-vm" substrings but are
+        // not the control fds we need. Exclude them first so they are not
+        // mistaken for vCPU or VM fds.
+        if target.contains("kvm-vcpu-stats") || target.contains("kvm-vm-stats") {
+            return None;
         }
         if target.contains("kvm-vcpu") {
             return Some(FdKind::Vcpu);
+        }
+        if target.contains("kvm-vm") {
+            return Some(FdKind::Vm);
         }
         None
     }
@@ -127,5 +134,11 @@ mod tests {
         );
         assert_eq!(FdKind::classify("anon_inode:kvm-vcpu"), Some(FdKind::Vcpu));
         assert_eq!(FdKind::classify("/dev/null"), None);
+
+        // The per-vCPU and per-VM statistics fds must not be mistaken for the
+        // vCPU/VM control fds, despite sharing the "kvm-vcpu"/"kvm-vm" prefix.
+        assert_eq!(FdKind::classify("anon_inode:kvm-vcpu-stats:0"), None);
+        assert_eq!(FdKind::classify("anon_inode:[kvm-vcpu-stats:2]"), None);
+        assert_eq!(FdKind::classify("anon_inode:kvm-vm-stats"), None);
     }
 }
