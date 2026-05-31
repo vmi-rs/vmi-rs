@@ -5,6 +5,7 @@ pub mod arch;
 pub mod attach;
 pub mod core;
 pub mod error;
+pub mod event;
 pub mod memory;
 pub mod ring;
 pub mod session;
@@ -17,6 +18,7 @@ pub use self::{
     attach::{KvmFds, from_pid},
     core::ViewId,
     error::KvmError,
+    event::{KvmEventReason, KvmMemAccessEvent, KvmSinglestepEvent, KvmVmiEvent, KvmVmiRegs},
     memory::{KvmGuestMemory, KvmMappedPage},
     ring::KvmVmiRing,
     session::KvmVmi,
