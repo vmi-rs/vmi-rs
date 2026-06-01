@@ -13,6 +13,10 @@ pub mod vcpu;
 
 pub use kvm_sys as sys;
 
+/// GFN sentinel that reverts a view's GFN remap to its host mapping
+/// (`KVM_VMI_INVALID_GFN`, all ones).
+pub const INVALID_GFN: u64 = kvm_sys::KVM_VMI_INVALID_GFN as u64;
+
 pub use self::{
     access::MemAccess,
     attach::{KvmFds, from_pid},
