@@ -4,6 +4,7 @@ use std::os::fd::{AsFd, BorrowedFd, FromRawFd, OwnedFd};
 
 use crate::{
     access::MemAccess,
+    arch::x86::{KvmControl, KvmInjectEvent},
     core::{ViewId, ioctl_none, ioctl_with_mut_ref, ioctl_with_ref},
     error::KvmError,
 };
@@ -70,17 +71,12 @@ impl KvmVmi {
         Ok(())
     }
 
-    /// Enables or disables an event, with optional arch control data.
-    pub fn control_event(
-        &self,
-        event: u32,
-        enable: bool,
-        arch: kvm_sys::kvm_vmi_arch_control_data,
-    ) -> Result<(), KvmError> {
+    /// Enables or disables an event monitor.
+    pub fn control_event(&self, control: KvmControl, enable: bool) -> Result<(), KvmError> {
         let arg = kvm_sys::kvm_vmi_control_event {
-            event,
+            event: control.event_id(),
             enable: enable as u32,
-            arch,
+            arch: control.arch_data(),
         };
         ioctl_with_ref(self.fd(), kvm_sys::KVM_VMI_CONTROL_EVENT, &arg)?;
         Ok(())
@@ -177,8 +173,9 @@ impl KvmVmi {
     }
 
     /// Injects an exception/interrupt/NMI into a vCPU.
-    pub fn inject_event(&self, arg: &kvm_sys::kvm_vmi_inject_event) -> Result<(), KvmError> {
-        ioctl_with_ref(self.fd(), kvm_sys::KVM_VMI_INJECT_EVENT, arg)?;
+    pub fn inject_event(&self, event: KvmInjectEvent) -> Result<(), KvmError> {
+        let arg = event.to_sys();
+        ioctl_with_ref(self.fd(), kvm_sys::KVM_VMI_INJECT_EVENT, &arg)?;
         Ok(())
     }
 
