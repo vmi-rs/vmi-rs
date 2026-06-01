@@ -264,10 +264,14 @@ mod ring_tests {
         let mut buf = page();
         let base = buf.as_mut_ptr() as *mut u8;
         let hdr = base as *mut kvm_sys::kvm_vmi_ring_header;
+        // SAFETY: buf is aligned to u64, large enough to hold the header and
+        // one event slot, and lives for the entire test body.
         let slot0 = unsafe {
             base.add(std::mem::size_of::<kvm_sys::kvm_vmi_ring_header>())
                 as *mut kvm_sys::kvm_vmi_ring_event
         };
+        // SAFETY: hdr and slot0 both point into the test buffer allocated
+        // above, within its bounds; no other reference to buf is live here.
         unsafe {
             (*hdr).num_slots = 1;
             (*hdr).req_prod = 1;
@@ -288,6 +292,8 @@ mod ring_tests {
             regs: None,
             view_id: Some(7),
         });
+        // SAFETY: slot0 points into the test buffer allocated above; ring.respond
+        // wrote into this same slot, and buf outlives this read.
         unsafe {
             assert_eq!((*slot0).view_id, 7);
             assert_ne!((*slot0).response & kvm_sys::KVM_VMI_RESPONSE_DENY, 0);
