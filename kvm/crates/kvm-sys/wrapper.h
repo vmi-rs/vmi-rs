@@ -22,6 +22,8 @@ static const unsigned long kvm_sys_KVM_VMI_SET_MEM_ACCESS = KVM_VMI_SET_MEM_ACCE
 static const unsigned long kvm_sys_KVM_VMI_ALLOC_GFN = KVM_VMI_ALLOC_GFN;
 static const unsigned long kvm_sys_KVM_VMI_FREE_GFN = KVM_VMI_FREE_GFN;
 static const unsigned long kvm_sys_KVM_VMI_CHANGE_GFN = KVM_VMI_CHANGE_GFN;
+
+#if defined(__x86_64__) || defined(__i386__)
 static const unsigned long kvm_sys_KVM_GET_REGS = KVM_GET_REGS;
 static const unsigned long kvm_sys_KVM_SET_REGS = KVM_SET_REGS;
 static const unsigned long kvm_sys_KVM_GET_SREGS = KVM_GET_SREGS;
@@ -30,8 +32,15 @@ static const unsigned long kvm_sys_KVM_GET_MSRS = KVM_GET_MSRS;
 static const unsigned long kvm_sys_KVM_SET_MSRS = KVM_SET_MSRS;
 static const unsigned long kvm_sys_KVM_GET_DEBUGREGS = KVM_GET_DEBUGREGS;
 static const unsigned long kvm_sys_KVM_SET_DEBUGREGS = KVM_SET_DEBUGREGS;
+#endif
+
+#if defined(__aarch64__)
+static const unsigned long kvm_sys_KVM_GET_ONE_REG = KVM_GET_ONE_REG;
+static const unsigned long kvm_sys_KVM_SET_ONE_REG = KVM_SET_ONE_REG;
+#endif
 
 /* Force arch event ids and invalid-gfn (function-like / cast macros) visible. */
+#if defined(__x86_64__) || defined(__i386__)
 static const unsigned kvm_sys_KVM_VMI_EVENT_CR = KVM_VMI_EVENT_CR;
 static const unsigned kvm_sys_KVM_VMI_EVENT_MSR = KVM_VMI_EVENT_MSR;
 static const unsigned kvm_sys_KVM_VMI_EVENT_CPUID = KVM_VMI_EVENT_CPUID;
@@ -39,6 +48,8 @@ static const unsigned kvm_sys_KVM_VMI_EVENT_BREAKPOINT = KVM_VMI_EVENT_BREAKPOIN
 static const unsigned kvm_sys_KVM_VMI_EVENT_DEBUG = KVM_VMI_EVENT_DEBUG;
 static const unsigned kvm_sys_KVM_VMI_EVENT_DESC_ACCESS = KVM_VMI_EVENT_DESC_ACCESS;
 static const unsigned kvm_sys_KVM_VMI_EVENT_IO = KVM_VMI_EVENT_IO;
+#endif
+
 /*
  * KVM_VMI_INVALID_GFN is `~(__u64)0`, which bindgen cannot constant-fold as an
  * unsigned 64-bit static (the value exceeds i64 and falls back to a linkage

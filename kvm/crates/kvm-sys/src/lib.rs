@@ -18,22 +18,12 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 // downstream callers. Only the names are rewritten here; every value still
 // comes from the kernel headers via bindgen.
 pub use self::{
-    kvm_sys_KVM_CREATE_VMI as KVM_CREATE_VMI, kvm_sys_KVM_GET_DEBUGREGS as KVM_GET_DEBUGREGS,
-    kvm_sys_KVM_GET_MSRS as KVM_GET_MSRS, kvm_sys_KVM_GET_REGS as KVM_GET_REGS,
-    kvm_sys_KVM_GET_SREGS as KVM_GET_SREGS, kvm_sys_KVM_SET_DEBUGREGS as KVM_SET_DEBUGREGS,
-    kvm_sys_KVM_SET_MSRS as KVM_SET_MSRS, kvm_sys_KVM_SET_REGS as KVM_SET_REGS,
-    kvm_sys_KVM_SET_SREGS as KVM_SET_SREGS, kvm_sys_KVM_VMI_ACK_EVENT as KVM_VMI_ACK_EVENT,
+    kvm_sys_KVM_CREATE_VMI as KVM_CREATE_VMI, kvm_sys_KVM_VMI_ACK_EVENT as KVM_VMI_ACK_EVENT,
     kvm_sys_KVM_VMI_ALLOC_GFN as KVM_VMI_ALLOC_GFN,
     kvm_sys_KVM_VMI_CHANGE_GFN as KVM_VMI_CHANGE_GFN,
     kvm_sys_KVM_VMI_CONTROL_EVENT as KVM_VMI_CONTROL_EVENT,
     kvm_sys_KVM_VMI_CREATE_VIEW as KVM_VMI_CREATE_VIEW,
     kvm_sys_KVM_VMI_DESTROY_VIEW as KVM_VMI_DESTROY_VIEW,
-    kvm_sys_KVM_VMI_EVENT_BREAKPOINT as KVM_VMI_EVENT_BREAKPOINT,
-    kvm_sys_KVM_VMI_EVENT_CPUID as KVM_VMI_EVENT_CPUID,
-    kvm_sys_KVM_VMI_EVENT_CR as KVM_VMI_EVENT_CR,
-    kvm_sys_KVM_VMI_EVENT_DEBUG as KVM_VMI_EVENT_DEBUG,
-    kvm_sys_KVM_VMI_EVENT_DESC_ACCESS as KVM_VMI_EVENT_DESC_ACCESS,
-    kvm_sys_KVM_VMI_EVENT_IO as KVM_VMI_EVENT_IO, kvm_sys_KVM_VMI_EVENT_MSR as KVM_VMI_EVENT_MSR,
     kvm_sys_KVM_VMI_FREE_GFN as KVM_VMI_FREE_GFN,
     kvm_sys_KVM_VMI_GET_MEM_ACCESS as KVM_VMI_GET_MEM_ACCESS,
     kvm_sys_KVM_VMI_INJECT_EVENT as KVM_VMI_INJECT_EVENT,
@@ -45,4 +35,23 @@ pub use self::{
     kvm_sys_KVM_VMI_TEARDOWN_RING as KVM_VMI_TEARDOWN_RING,
     kvm_sys_KVM_VMI_UNPAUSE_VCPU as KVM_VMI_UNPAUSE_VCPU,
     kvm_sys_KVM_VMI_UNPAUSE_VM as KVM_VMI_UNPAUSE_VM,
+};
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub use self::{
+    kvm_sys_KVM_GET_DEBUGREGS as KVM_GET_DEBUGREGS, kvm_sys_KVM_GET_MSRS as KVM_GET_MSRS,
+    kvm_sys_KVM_GET_REGS as KVM_GET_REGS, kvm_sys_KVM_GET_SREGS as KVM_GET_SREGS,
+    kvm_sys_KVM_SET_DEBUGREGS as KVM_SET_DEBUGREGS, kvm_sys_KVM_SET_MSRS as KVM_SET_MSRS,
+    kvm_sys_KVM_SET_REGS as KVM_SET_REGS, kvm_sys_KVM_SET_SREGS as KVM_SET_SREGS,
+    kvm_sys_KVM_VMI_EVENT_BREAKPOINT as KVM_VMI_EVENT_BREAKPOINT,
+    kvm_sys_KVM_VMI_EVENT_CPUID as KVM_VMI_EVENT_CPUID,
+    kvm_sys_KVM_VMI_EVENT_CR as KVM_VMI_EVENT_CR,
+    kvm_sys_KVM_VMI_EVENT_DEBUG as KVM_VMI_EVENT_DEBUG,
+    kvm_sys_KVM_VMI_EVENT_DESC_ACCESS as KVM_VMI_EVENT_DESC_ACCESS,
+    kvm_sys_KVM_VMI_EVENT_IO as KVM_VMI_EVENT_IO, kvm_sys_KVM_VMI_EVENT_MSR as KVM_VMI_EVENT_MSR,
+};
+
+#[cfg(target_arch = "aarch64")]
+pub use self::{
+    kvm_sys_KVM_GET_ONE_REG as KVM_GET_ONE_REG, kvm_sys_KVM_SET_ONE_REG as KVM_SET_ONE_REG,
 };
