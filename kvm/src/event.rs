@@ -1,15 +1,23 @@
 //! Native, decoded VMI event types (arch-neutral envelope).
 
-use crate::{
-    access::MemAccess,
-    arch::x86::{KvmEventReasonX86, KvmVmiRegsX86},
-};
+use crate::access::MemAccess;
+
+#[cfg(target_arch = "x86_64")]
+use crate::arch::x86::{KvmEventReasonX86, KvmVmiRegsX86};
+
+#[cfg(target_arch = "aarch64")]
+use crate::arch::arm64::{KvmEventReasonArm64, KvmVmiRegsArm64};
 
 /// In-event register snapshot, arch-split like `xen::ctrl::VmEventRegs`.
 #[derive(Debug, Clone, Copy)]
 pub enum KvmVmiRegs {
     /// x86 register snapshot.
+    #[cfg(target_arch = "x86_64")]
     X86(KvmVmiRegsX86),
+
+    /// arm64 register snapshot.
+    #[cfg(target_arch = "aarch64")]
+    Arm64(KvmVmiRegsArm64),
 }
 
 /// Arch-neutral memory-access event payload.
@@ -43,7 +51,12 @@ pub enum KvmEventReason {
     Hypercall,
 
     /// Architecture-specific reason.
+    #[cfg(target_arch = "x86_64")]
     Arch(KvmEventReasonX86),
+
+    /// arm64-specific event reason.
+    #[cfg(target_arch = "aarch64")]
+    Arch(KvmEventReasonArm64),
 }
 
 /// One decoded VMI event read off a ring slot.

@@ -4,10 +4,15 @@ use std::os::fd::{AsFd, BorrowedFd, FromRawFd, OwnedFd};
 
 use crate::{
     access::MemAccess,
-    arch::x86::{KvmControl, KvmInjectEvent},
     core::{ViewId, ioctl_none, ioctl_with_mut_ref, ioctl_with_ref},
     error::KvmError,
 };
+
+#[cfg(target_arch = "x86_64")]
+use crate::arch::x86::{KvmControl, KvmInjectEvent};
+
+#[cfg(target_arch = "aarch64")]
+use crate::arch::arm64::{KvmControl, KvmInjectEvent};
 
 /// A VMI session created from a KVM VM fd via `KVM_CREATE_VMI`.
 pub struct KvmVmi {

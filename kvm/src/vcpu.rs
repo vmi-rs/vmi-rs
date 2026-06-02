@@ -1,44 +1,63 @@
 //! A duplicated KVM vCPU fd, used for standard register ioctls.
 
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd};
+use std::os::fd::{AsFd, BorrowedFd, OwnedFd};
 
-use crate::{
-    arch::x86::{KvmDtable, KvmSegment, Registers},
-    core::{ioctl_with_mut_ref, ioctl_with_ref},
-    error::KvmError,
-};
+#[cfg(target_arch = "x86_64")]
+use std::os::fd::AsRawFd;
+
+use crate::{core::ioctl_with_ref, error::KvmError};
+
+#[cfg(target_arch = "x86_64")]
+use crate::core::ioctl_with_mut_ref;
+
+#[cfg(target_arch = "x86_64")]
+use crate::arch::x86::{KvmDtable, KvmSegment, Registers};
+
+#[cfg(target_arch = "aarch64")]
+use crate::arch::arm64::Registers;
 
 /// `IA32_SYSENTER_CS`.
+#[cfg(target_arch = "x86_64")]
 const MSR_IA32_SYSENTER_CS: u32 = 0x0000_0174;
 
 /// `IA32_SYSENTER_ESP`.
+#[cfg(target_arch = "x86_64")]
 const MSR_IA32_SYSENTER_ESP: u32 = 0x0000_0175;
 
 /// `IA32_SYSENTER_EIP`.
+#[cfg(target_arch = "x86_64")]
 const MSR_IA32_SYSENTER_EIP: u32 = 0x0000_0176;
 
 /// `IA32_EFER`.
+#[cfg(target_arch = "x86_64")]
 const MSR_EFER: u32 = 0xc000_0080;
 
 /// `IA32_STAR`.
+#[cfg(target_arch = "x86_64")]
 const MSR_STAR: u32 = 0xc000_0081;
 
 /// `IA32_LSTAR`.
+#[cfg(target_arch = "x86_64")]
 const MSR_LSTAR: u32 = 0xc000_0082;
 
 /// `IA32_CSTAR`.
+#[cfg(target_arch = "x86_64")]
 const MSR_CSTAR: u32 = 0xc000_0083;
 
 /// `IA32_FMASK` (syscall flag mask).
+#[cfg(target_arch = "x86_64")]
 const MSR_FMASK: u32 = 0xc000_0084;
 
 /// `IA32_KERNEL_GS_BASE` (the swapped-out GS base).
+#[cfg(target_arch = "x86_64")]
 const MSR_KERNEL_GS_BASE: u32 = 0xc000_0102;
 
 /// `IA32_TSC_AUX`.
+#[cfg(target_arch = "x86_64")]
 const MSR_TSC_AUX: u32 = 0xc000_0103;
 
 /// The subset of MSRs read alongside the GP and special registers.
+#[cfg(target_arch = "x86_64")]
 #[derive(Default)]
 struct Msrs {
     /// `IA32_EFER`.
@@ -91,6 +110,7 @@ impl KvmVcpu {
     }
 
     /// Reads general-purpose registers via `KVM_GET_REGS`.
+    #[cfg(target_arch = "x86_64")]
     fn get_regs(&self) -> Result<kvm_sys::kvm_regs, KvmError> {
         let mut regs = kvm_sys::kvm_regs::default();
         ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_GET_REGS, &mut regs)?;
@@ -98,12 +118,14 @@ impl KvmVcpu {
     }
 
     /// Writes general-purpose registers via `KVM_SET_REGS`.
+    #[cfg(target_arch = "x86_64")]
     fn set_regs(&self, regs: &kvm_sys::kvm_regs) -> Result<(), KvmError> {
         ioctl_with_ref(self.fd(), kvm_sys::KVM_SET_REGS, regs)?;
         Ok(())
     }
 
     /// Reads special registers via `KVM_GET_SREGS`.
+    #[cfg(target_arch = "x86_64")]
     fn get_sregs(&self) -> Result<kvm_sys::kvm_sregs, KvmError> {
         let mut sregs = kvm_sys::kvm_sregs::default();
         ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_GET_SREGS, &mut sregs)?;
@@ -111,12 +133,14 @@ impl KvmVcpu {
     }
 
     /// Writes special registers via `KVM_SET_SREGS`.
+    #[cfg(target_arch = "x86_64")]
     fn set_sregs(&self, sregs: &kvm_sys::kvm_sregs) -> Result<(), KvmError> {
         ioctl_with_ref(self.fd(), kvm_sys::KVM_SET_SREGS, sregs)?;
         Ok(())
     }
 
     /// Reads debug registers via `KVM_GET_DEBUGREGS`.
+    #[cfg(target_arch = "x86_64")]
     fn get_debugregs(&self) -> Result<kvm_sys::kvm_debugregs, KvmError> {
         let mut dregs = kvm_sys::kvm_debugregs::default();
         ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_GET_DEBUGREGS, &mut dregs)?;
@@ -125,6 +149,7 @@ impl KvmVcpu {
 
     /// Reads the given MSRs. `entries` is filled with index/data pairs. The
     /// data fields are populated on return.
+    #[cfg(target_arch = "x86_64")]
     fn get_msrs(&self, entries: &mut [kvm_sys::kvm_msr_entry]) -> Result<(), KvmError> {
         // kvm_msrs is a flexible-array struct: header + entries[]. Build a byte
         // buffer of the right size.
@@ -152,6 +177,7 @@ impl KvmVcpu {
     }
 
     /// Reads the MSRs carried in the full register context into a named bundle.
+    #[cfg(target_arch = "x86_64")]
     fn read_tracked_msrs(&self) -> Result<Msrs, KvmError> {
         let indices = [
             MSR_EFER,
@@ -192,6 +218,7 @@ impl KvmVcpu {
 
     /// Reads the full register context via `KVM_GET_REGS`, `KVM_GET_SREGS`,
     /// `KVM_GET_DEBUGREGS`, and `KVM_GET_MSRS` and flattens it into `Registers`.
+    #[cfg(target_arch = "x86_64")]
     pub fn get_registers(&self) -> Result<Registers, KvmError> {
         let regs = self.get_regs()?;
         let sregs = self.get_sregs()?;
@@ -276,6 +303,7 @@ impl KvmVcpu {
     /// `KVM_SET_REGS` and `KVM_SET_SREGS`. `efer` is written as part of
     /// `KVM_SET_SREGS`. Debug registers and the remaining MSRs (STAR, LSTAR,
     /// CSTAR, SFMASK, KERNEL_GS_BASE, SYSENTER_*, TSC_AUX) are not written back.
+    #[cfg(target_arch = "x86_64")]
     pub fn set_registers(&self, regs: &Registers) -> Result<(), KvmError> {
         let unseg = |s: &KvmSegment| kvm_sys::kvm_segment {
             base: s.base,
@@ -342,6 +370,104 @@ impl KvmVcpu {
 
         self.set_regs(&gp)?;
         self.set_sregs(&sregs)?;
+        Ok(())
+    }
+
+    /// Reads one register by id via `KVM_GET_ONE_REG`.
+    #[cfg(target_arch = "aarch64")]
+    fn get_one_reg(&self, id: u64) -> Result<u64, KvmError> {
+        let mut val = 0u64;
+        let reg = kvm_sys::kvm_one_reg {
+            id,
+            // Sound: `val` outlives the synchronous ioctl and the pointer is exclusively owned for its duration.
+            addr: &mut val as *mut u64 as u64,
+        };
+        ioctl_with_ref(self.fd(), kvm_sys::KVM_GET_ONE_REG, &reg)?;
+        Ok(val)
+    }
+
+    /// Writes one register by id via `KVM_SET_ONE_REG`.
+    #[cfg(target_arch = "aarch64")]
+    fn set_one_reg(&self, id: u64, val: u64) -> Result<(), KvmError> {
+        let reg = kvm_sys::kvm_one_reg {
+            id,
+            // Sound: `val` outlives the synchronous ioctl and the pointer is exclusively owned for its duration.
+            addr: &val as *const u64 as u64,
+        };
+        ioctl_with_ref(self.fd(), kvm_sys::KVM_SET_ONE_REG, &reg)?;
+        Ok(())
+    }
+
+    /// Reads the full register context via `KVM_GET_ONE_REG` (one ioctl per
+    /// register) and assembles it into `Registers`.
+    #[cfg(target_arch = "aarch64")]
+    pub fn get_registers(&self) -> Result<Registers, KvmError> {
+        use crate::arch::arm64::{
+            CONTEXTIDR_EL1, CoreReg, ESR_EL1, FAR_EL1, MAIR_EL1, SCTLR_EL1, TCR_EL1, TPIDR_EL0,
+            TPIDR_EL1, TPIDRRO_EL0, TTBR0_EL1, TTBR1_EL1, VBAR_EL1, core_reg_id,
+        };
+
+        let mut regs = [0u64; 31];
+        for n in 0u8..31 {
+            regs[n as usize] = self.get_one_reg(core_reg_id(CoreReg::X(n)))?;
+        }
+
+        Ok(Registers {
+            regs,
+            sp_el0: self.get_one_reg(core_reg_id(CoreReg::Sp))?,
+            sp_el1: self.get_one_reg(core_reg_id(CoreReg::SpEl1))?,
+            pc: self.get_one_reg(core_reg_id(CoreReg::Pc))?,
+            pstate: self.get_one_reg(core_reg_id(CoreReg::Pstate))?,
+            ttbr0_el1: self.get_one_reg(TTBR0_EL1)?,
+            ttbr1_el1: self.get_one_reg(TTBR1_EL1)?,
+            tcr_el1: self.get_one_reg(TCR_EL1)?,
+            sctlr_el1: self.get_one_reg(SCTLR_EL1)?,
+            mair_el1: self.get_one_reg(MAIR_EL1)?,
+            vbar_el1: self.get_one_reg(VBAR_EL1)?,
+            contextidr_el1: self.get_one_reg(CONTEXTIDR_EL1)?,
+            elr_el1: self.get_one_reg(core_reg_id(CoreReg::ElrEl1))?,
+            spsr_el1: self.get_one_reg(core_reg_id(CoreReg::SpsrEl1))?,
+            esr_el1: self.get_one_reg(ESR_EL1)?,
+            far_el1: self.get_one_reg(FAR_EL1)?,
+            tpidr_el0: self.get_one_reg(TPIDR_EL0)?,
+            tpidr_el1: self.get_one_reg(TPIDR_EL1)?,
+            tpidrro_el0: self.get_one_reg(TPIDRRO_EL0)?,
+        })
+    }
+
+    /// Writes the writable registers via `KVM_SET_ONE_REG`. `sp_el1`,
+    /// `elr_el1`, and `spsr_el1` are written via CORE-block ONE_REG ids,
+    /// matching how they are read in `get_registers`. `TPIDRRO_EL0` is
+    /// read-only for the guest but writable by the hypervisor via
+    /// `KVM_SET_ONE_REG`, so it is written back.
+    #[cfg(target_arch = "aarch64")]
+    pub fn set_registers(&self, regs: &Registers) -> Result<(), KvmError> {
+        use crate::arch::arm64::{
+            CONTEXTIDR_EL1, CoreReg, ESR_EL1, FAR_EL1, MAIR_EL1, SCTLR_EL1, TCR_EL1, TPIDR_EL0,
+            TPIDR_EL1, TPIDRRO_EL0, TTBR0_EL1, TTBR1_EL1, VBAR_EL1, core_reg_id,
+        };
+
+        for n in 0u8..31 {
+            self.set_one_reg(core_reg_id(CoreReg::X(n)), regs.regs[n as usize])?;
+        }
+        self.set_one_reg(core_reg_id(CoreReg::Sp), regs.sp_el0)?;
+        self.set_one_reg(core_reg_id(CoreReg::SpEl1), regs.sp_el1)?;
+        self.set_one_reg(core_reg_id(CoreReg::Pc), regs.pc)?;
+        self.set_one_reg(core_reg_id(CoreReg::Pstate), regs.pstate)?;
+        self.set_one_reg(TTBR0_EL1, regs.ttbr0_el1)?;
+        self.set_one_reg(TTBR1_EL1, regs.ttbr1_el1)?;
+        self.set_one_reg(TCR_EL1, regs.tcr_el1)?;
+        self.set_one_reg(SCTLR_EL1, regs.sctlr_el1)?;
+        self.set_one_reg(MAIR_EL1, regs.mair_el1)?;
+        self.set_one_reg(VBAR_EL1, regs.vbar_el1)?;
+        self.set_one_reg(CONTEXTIDR_EL1, regs.contextidr_el1)?;
+        self.set_one_reg(core_reg_id(CoreReg::ElrEl1), regs.elr_el1)?;
+        self.set_one_reg(core_reg_id(CoreReg::SpsrEl1), regs.spsr_el1)?;
+        self.set_one_reg(ESR_EL1, regs.esr_el1)?;
+        self.set_one_reg(FAR_EL1, regs.far_el1)?;
+        self.set_one_reg(TPIDR_EL0, regs.tpidr_el0)?;
+        self.set_one_reg(TPIDR_EL1, regs.tpidr_el1)?;
+        self.set_one_reg(TPIDRRO_EL0, regs.tpidrro_el0)?;
         Ok(())
     }
 }

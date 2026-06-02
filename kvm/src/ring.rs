@@ -3,11 +3,16 @@
 use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd};
 
 use crate::{
-    arch::x86::decode_event,
     error::KvmError,
     event::{KvmVmiEvent, KvmVmiRegs, KvmVmiResponse},
     memory::PAGE_SIZE,
 };
+
+#[cfg(target_arch = "x86_64")]
+use crate::arch::x86::decode_event;
+
+#[cfg(target_arch = "aarch64")]
+use crate::arch::arm64::decode_event;
 
 /// Computes the slot index for a producer/consumer cursor.
 pub(crate) fn slot_index(cursor: u32, num_slots: u32) -> u32 {
@@ -160,7 +165,12 @@ impl KvmVmiRing {
             if let Some(view_id) = resp.view_id {
                 std::ptr::write_volatile(&mut (*slot_ptr).view_id, view_id);
             }
+            #[cfg(target_arch = "x86_64")]
             if let Some(KvmVmiRegs::X86(regs)) = resp.regs {
+                std::ptr::write_volatile(&mut (*slot_ptr).regs, kvm_sys::kvm_vmi_regs::from(&regs));
+            }
+            #[cfg(target_arch = "aarch64")]
+            if let Some(KvmVmiRegs::Arm64(regs)) = resp.regs {
                 std::ptr::write_volatile(&mut (*slot_ptr).regs, kvm_sys::kvm_vmi_regs::from(&regs));
             }
         }
@@ -222,7 +232,7 @@ impl Drop for KvmVmiRing {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "x86_64"))]
 impl KvmVmiRing {
     /// Wraps an externally-owned ring buffer with no fds. `Drop` does not
     /// munmap, so the caller keeps ownership of the backing storage.
@@ -248,7 +258,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "x86_64"))]
 mod ring_tests {
     use crate::arch::x86::KvmEventReasonX86;
     use crate::event::{KvmEventReason, KvmResponseAction, KvmVmiResponse};
