@@ -40,6 +40,7 @@ pub const KVM_VMI_RESPONSE_SINGLESTEP: u32 = 32;
 pub const KVM_VMI_RESPONSE_SINGLESTEP_FAST: u32 = 64;
 pub const KVM_VMI_RESPONSE_MASK: u32 = 127;
 pub type __u8 = ::std::os::raw::c_uchar;
+pub type __u16 = ::std::os::raw::c_ushort;
 pub type __s32 = ::std::os::raw::c_int;
 pub type __u32 = ::std::os::raw::c_uint;
 pub type __u64 = ::std::os::raw::c_ulonglong;
@@ -395,7 +396,9 @@ pub union kvm_vmi_mem_access__bindgen_ty_1 {
 pub struct kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1 {
     pub gfn: __u64,
     pub access: __u8,
-    pub pad: [__u8; 7usize],
+    pub pad: __u8,
+    pub autostep_mask: __u16,
+    pub pad2: [__u8; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
@@ -409,6 +412,12 @@ const _: () = {
         [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, access) - 8usize];
     ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::pad"]
         [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, pad) - 9usize];
+    ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::autostep_mask"][::std::mem::offset_of!(
+        kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1,
+        autostep_mask
+    ) - 10usize];
+    ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::pad2"]
+        [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, pad2) - 12usize];
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]

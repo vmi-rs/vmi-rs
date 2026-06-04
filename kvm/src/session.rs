@@ -136,6 +136,34 @@ impl KvmVmi {
         Ok(())
     }
 
+    /// Sets per-GFN access in a view (single GFN) with a sub-page auto-step mask.
+    ///
+    /// Bit i of `autostep_mask` marks the 4K sub-page at offset i*4K within
+    /// `gfn`'s host page for in-kernel single-stepping on a denied data access
+    /// instead of a delivered mem-access event. It serves hosts whose page size
+    /// exceeds the guest granule, where one stage-2 leaf fuses several guest
+    /// pages. A nonzero mask fails with `-EOPNOTSUPP` on a kernel without
+    /// auto-step support.
+    pub fn set_mem_access_autostep(
+        &self,
+        view: ViewId,
+        gfn: u64,
+        access: MemAccess,
+        autostep_mask: u16,
+    ) -> Result<(), KvmError> {
+        let mut arg = kvm_sys::kvm_vmi_mem_access {
+            view_id: view.0,
+            nr: 1,
+            ..Default::default()
+        };
+        // Writing the single-GFN arm of the union (nr == 1 selects it) is safe.
+        arg.__bindgen_anon_1.__bindgen_anon_1.gfn = gfn;
+        arg.__bindgen_anon_1.__bindgen_anon_1.access = access.bits();
+        arg.__bindgen_anon_1.__bindgen_anon_1.autostep_mask = autostep_mask;
+        ioctl_with_ref(self.fd(), kvm_sys::KVM_VMI_SET_MEM_ACCESS, &arg)?;
+        Ok(())
+    }
+
     /// Queries per-GFN access in a view (single GFN).
     pub fn get_mem_access(&self, view: ViewId, gfn: u64) -> Result<MemAccess, KvmError> {
         let mut arg = kvm_sys::kvm_vmi_mem_access {
