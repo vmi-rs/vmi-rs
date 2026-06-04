@@ -164,6 +164,13 @@ pub(crate) fn decode_event(slot: &kvm_sys::kvm_vmi_ring_event) -> Result<KvmVmiE
         KvmEventReason::Singlestep(KvmSinglestepEvent { gpa: ss.gpa })
     } else if kind == kvm_sys::KVM_VMI_EVENT_HYPERCALL {
         KvmEventReason::Hypercall
+    } else if kind == kvm_sys::KVM_VMI_EVENT_BREAKPOINT {
+        // SAFETY: type_ selects the arch.breakpoint arm. The arm64 payload
+        // names the faulting guest-physical address `ipa`.
+        let bp = unsafe { slot.__bindgen_anon_1.arch.breakpoint };
+        KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(KvmBreakpointEvent {
+            gpa: bp.ipa,
+        }))
     } else {
         return Err(KvmError::Other("unknown event type"));
     };
@@ -199,6 +206,23 @@ mod decode_tests {
             KvmEventReason::MemAccess(m) => {
                 assert_eq!(m.gpa, 0xdead000);
                 assert!(m.access.contains(crate::MemAccess::R | crate::MemAccess::X));
+            }
+            other => panic!("wrong reason: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn decodes_breakpoint() {
+        let mut slot = empty_slot();
+        slot.type_ = kvm_sys::KVM_VMI_EVENT_BREAKPOINT;
+        slot.__bindgen_anon_1.arch.breakpoint = kvm_sys::kvm_vmi_event_breakpoint {
+            ipa: 0xcafe000,
+            imm: 0,
+            pad: 0,
+        };
+        match decode_event(&slot).unwrap().reason {
+            KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(bp)) => {
+                assert_eq!(bp.gpa, 0xcafe000);
             }
             other => panic!("wrong reason: {other:?}"),
         }
