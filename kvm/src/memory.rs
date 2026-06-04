@@ -65,7 +65,8 @@ impl Drop for KvmMappedPage {
     }
 }
 
-/// Maps guest pages on demand via `mmap(vmi_fd, offset = gfn << shift)`.
+/// Maps guest pages on demand via `mmap` on the vmi_fd, translating a gfn into
+/// the host-page-aligned offset the kernel fault handler expects.
 pub struct KvmGuestMemory;
 
 impl KvmGuestMemory {
@@ -86,14 +87,31 @@ impl KvmGuestMemory {
         // The caller asks for the guest page identified by `gfn` in its own
         // granule (`1 << page_shift`). The vmi_fd mmap interface, however,
         // works in host pages: the offset must be host-page aligned or the
-        // kernel returns EINVAL, and the fault handler maps the host page at
-        // `pgoff = offset >> host_page_shift`. Align the request down to the
-        // enclosing host page and expose the guest page window inside it.
+        // kernel returns EINVAL, and the fault handler reads `gfn = vmf->pgoff
+        // = offset >> host_page_shift` as the KVM gfn to resolve.
         let guest_page = 1usize << page_shift;
-        let guest_pa = gfn << page_shift;
         let host_page = host_page_size();
-        let aligned = guest_pa & !(host_page as u64 - 1);
-        let sub = (guest_pa - aligned) as usize;
+        let host_shift = host_page.trailing_zeros();
+
+        // A shadow gfn returned by `alloc_gfn` is already a host-page gfn in the
+        // kernel's `shadow_pages` xarray, keyed verbatim by `vmf->pgoff`. The
+        // guest-to-host page-unit conversion below must not be applied to it, or
+        // `pgoff` no longer matches the xarray key and the fault handler raises
+        // SIGBUS. Place it at `offset = shadow_gfn << host_shift` so the kernel
+        // recovers the exact key, and expose a guest-page window at the start of
+        // the host page. On a host whose page size equals the guest granule both
+        // branches coincide.
+        let (aligned, sub) = if gfn >= kvm_sys::KVM_VMI_SHADOW_GFN_BASE {
+            (gfn << host_shift, 0usize)
+        }
+        else {
+            // Align the guest PA down to the enclosing host page and expose the
+            // guest page window inside it.
+            let guest_pa = gfn << page_shift;
+            let aligned = guest_pa & !(host_page as u64 - 1);
+            let sub = (guest_pa - aligned) as usize;
+            (aligned, sub)
+        };
         let base_len = (sub + guest_page).next_multiple_of(host_page);
 
         // SAFETY: standard mmap; null addr lets the kernel choose.
