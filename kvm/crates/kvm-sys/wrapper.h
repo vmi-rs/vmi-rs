@@ -50,6 +50,10 @@ static const unsigned kvm_sys_KVM_VMI_EVENT_DESC_ACCESS = KVM_VMI_EVENT_DESC_ACC
 static const unsigned kvm_sys_KVM_VMI_EVENT_IO = KVM_VMI_EVENT_IO;
 #endif
 
+#if defined(__aarch64__)
+static const unsigned kvm_sys_KVM_VMI_EVENT_BREAKPOINT = KVM_VMI_EVENT_BREAKPOINT;
+#endif
+
 /*
  * KVM_VMI_INVALID_GFN is `~(__u64)0`, which bindgen cannot constant-fold as an
  * unsigned 64-bit static (the value exceeds i64 and falls back to a linkage

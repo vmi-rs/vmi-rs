@@ -2,8 +2,9 @@
 
 /// A monitor-control request for arm64: which event to enable/disable.
 ///
-/// arm64 VMI does not yet define arch-specific control parameters, so every
-/// variant carries only the enable/disable toggle (no inline data).
+/// The arm64 uAPI defines a `kvm_vmi_arch_control_data` union for future
+/// arch-specific parameters. None of the variants implemented here carry
+/// arch-specific data, so all use the zeroed control data.
 #[derive(Debug, Clone, Copy)]
 pub enum KvmControl {
     /// Single-step trap interception.
@@ -14,6 +15,9 @@ pub enum KvmControl {
 
     /// Memory-access (stage-2 fault) interception.
     MemAccess,
+
+    /// Software-breakpoint (`BRK`) interception.
+    Breakpoint,
 }
 
 impl KvmControl {
@@ -23,13 +27,14 @@ impl KvmControl {
             KvmControl::Singlestep => kvm_sys::KVM_VMI_EVENT_SINGLESTEP,
             KvmControl::Hypercall => kvm_sys::KVM_VMI_EVENT_HYPERCALL,
             KvmControl::MemAccess => kvm_sys::KVM_VMI_EVENT_MEM_ACCESS,
+            KvmControl::Breakpoint => kvm_sys::KVM_VMI_EVENT_BREAKPOINT,
         }
     }
 
     /// Returns the arch control-data union for this control.
     ///
-    /// arm64 `kvm_vmi_arch_control_data` is a zero-size type, so always returns
-    /// the default.
+    /// None of the implemented controls carries arch-specific data, so this
+    /// returns the zeroed default.
     pub(crate) fn arch_data(&self) -> kvm_sys::kvm_vmi_arch_control_data {
         kvm_sys::kvm_vmi_arch_control_data::default()
     }
@@ -103,6 +108,14 @@ impl KvmInjectEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn breakpoint_control_targets_breakpoint_event() {
+        assert_eq!(
+            KvmControl::Breakpoint.event_id(),
+            kvm_sys::KVM_VMI_EVENT_BREAKPOINT
+        );
+    }
 
     #[test]
     fn inject_serror_encodes_type() {

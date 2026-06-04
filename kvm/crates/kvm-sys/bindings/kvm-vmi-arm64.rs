@@ -11,6 +11,13 @@ pub const KVM_VMI_EVENT_MEM_ACCESS: u32 = 0;
 pub const KVM_VMI_EVENT_SINGLESTEP: u32 = 1;
 pub const KVM_VMI_EVENT_HYPERCALL: u32 = 2;
 pub const KVM_VMI_EVENT_ARCH_BASE: u32 = 8;
+pub const KVM_VMI_SYSREG_SCTLR_EL1: u32 = 0;
+pub const KVM_VMI_SYSREG_TTBR0_EL1: u32 = 1;
+pub const KVM_VMI_SYSREG_TTBR1_EL1: u32 = 2;
+pub const KVM_VMI_SYSREG_TCR_EL1: u32 = 3;
+pub const KVM_VMI_SYSREG_CONTEXTIDR_EL1: u32 = 4;
+pub const KVM_VMI_SYSREG_MAIR_EL1: u32 = 5;
+pub const KVM_VMI_NR_SYSREG_MONITORS: u32 = 6;
 pub const KVM_VMI_INJECT_SERROR: u32 = 0;
 pub const KVM_VMI_INJECT_ABORT: u32 = 1;
 pub const KVM_VMI_ACCESS_R: u32 = 1;
@@ -114,17 +121,41 @@ const _: () = {
         [::std::mem::offset_of!(kvm_vmi_regs, tpidrro_el0) - 384usize];
 };
 #[repr(C)]
-#[repr(align(1))]
 #[derive(Copy, Clone)]
-pub struct kvm_vmi_arch_control_data {
-    pub bindgen_union_field: [u8; 0usize],
+pub union kvm_vmi_arch_control_data {
+    pub sysreg: kvm_vmi_arch_control_data__bindgen_ty_1,
+}
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_arch_control_data__bindgen_ty_1 {
+    pub reg: __u8,
+    pub onchangeonly: __u8,
+    pub pad: [__u8; 6usize],
+    pub bitmask: __u64,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
+    ["Size of kvm_vmi_arch_control_data__bindgen_ty_1"]
+        [::std::mem::size_of::<kvm_vmi_arch_control_data__bindgen_ty_1>() - 16usize];
+    ["Alignment of kvm_vmi_arch_control_data__bindgen_ty_1"]
+        [::std::mem::align_of::<kvm_vmi_arch_control_data__bindgen_ty_1>() - 8usize];
+    ["Offset of field: kvm_vmi_arch_control_data__bindgen_ty_1::reg"]
+        [::std::mem::offset_of!(kvm_vmi_arch_control_data__bindgen_ty_1, reg) - 0usize];
+    ["Offset of field: kvm_vmi_arch_control_data__bindgen_ty_1::onchangeonly"]
+        [::std::mem::offset_of!(kvm_vmi_arch_control_data__bindgen_ty_1, onchangeonly) - 1usize];
+    ["Offset of field: kvm_vmi_arch_control_data__bindgen_ty_1::pad"]
+        [::std::mem::offset_of!(kvm_vmi_arch_control_data__bindgen_ty_1, pad) - 2usize];
+    ["Offset of field: kvm_vmi_arch_control_data__bindgen_ty_1::bitmask"]
+        [::std::mem::offset_of!(kvm_vmi_arch_control_data__bindgen_ty_1, bitmask) - 8usize];
+};
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
     ["Size of kvm_vmi_arch_control_data"]
-        [::std::mem::size_of::<kvm_vmi_arch_control_data>() - 0usize];
+        [::std::mem::size_of::<kvm_vmi_arch_control_data>() - 16usize];
     ["Alignment of kvm_vmi_arch_control_data"]
-        [::std::mem::align_of::<kvm_vmi_arch_control_data>() - 1usize];
+        [::std::mem::align_of::<kvm_vmi_arch_control_data>() - 8usize];
+    ["Offset of field: kvm_vmi_arch_control_data::sysreg"]
+        [::std::mem::offset_of!(kvm_vmi_arch_control_data, sysreg) - 0usize];
 };
 impl Default for kvm_vmi_arch_control_data {
     fn default() -> Self {
@@ -136,16 +167,61 @@ impl Default for kvm_vmi_arch_control_data {
     }
 }
 #[repr(C)]
-#[repr(align(1))]
-#[derive(Copy, Clone)]
-pub struct kvm_vmi_arch_event_data {
-    pub bindgen_union_field: [u8; 0usize],
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_event_sysreg {
+    pub reg: __u32,
+    pub pad: __u32,
+    pub old_value: __u64,
+    pub new_value: __u64,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of kvm_vmi_arch_event_data"][::std::mem::size_of::<kvm_vmi_arch_event_data>() - 0usize];
+    ["Size of kvm_vmi_event_sysreg"][::std::mem::size_of::<kvm_vmi_event_sysreg>() - 24usize];
+    ["Alignment of kvm_vmi_event_sysreg"][::std::mem::align_of::<kvm_vmi_event_sysreg>() - 8usize];
+    ["Offset of field: kvm_vmi_event_sysreg::reg"]
+        [::std::mem::offset_of!(kvm_vmi_event_sysreg, reg) - 0usize];
+    ["Offset of field: kvm_vmi_event_sysreg::pad"]
+        [::std::mem::offset_of!(kvm_vmi_event_sysreg, pad) - 4usize];
+    ["Offset of field: kvm_vmi_event_sysreg::old_value"]
+        [::std::mem::offset_of!(kvm_vmi_event_sysreg, old_value) - 8usize];
+    ["Offset of field: kvm_vmi_event_sysreg::new_value"]
+        [::std::mem::offset_of!(kvm_vmi_event_sysreg, new_value) - 16usize];
+};
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_event_breakpoint {
+    pub ipa: __u64,
+    pub imm: __u32,
+    pub pad: __u32,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_event_breakpoint"]
+        [::std::mem::size_of::<kvm_vmi_event_breakpoint>() - 16usize];
+    ["Alignment of kvm_vmi_event_breakpoint"]
+        [::std::mem::align_of::<kvm_vmi_event_breakpoint>() - 8usize];
+    ["Offset of field: kvm_vmi_event_breakpoint::ipa"]
+        [::std::mem::offset_of!(kvm_vmi_event_breakpoint, ipa) - 0usize];
+    ["Offset of field: kvm_vmi_event_breakpoint::imm"]
+        [::std::mem::offset_of!(kvm_vmi_event_breakpoint, imm) - 8usize];
+    ["Offset of field: kvm_vmi_event_breakpoint::pad"]
+        [::std::mem::offset_of!(kvm_vmi_event_breakpoint, pad) - 12usize];
+};
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union kvm_vmi_arch_event_data {
+    pub sysreg: kvm_vmi_event_sysreg,
+    pub breakpoint: kvm_vmi_event_breakpoint,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_arch_event_data"][::std::mem::size_of::<kvm_vmi_arch_event_data>() - 24usize];
     ["Alignment of kvm_vmi_arch_event_data"]
-        [::std::mem::align_of::<kvm_vmi_arch_event_data>() - 1usize];
+        [::std::mem::align_of::<kvm_vmi_arch_event_data>() - 8usize];
+    ["Offset of field: kvm_vmi_arch_event_data::sysreg"]
+        [::std::mem::offset_of!(kvm_vmi_arch_event_data, sysreg) - 0usize];
+    ["Offset of field: kvm_vmi_arch_event_data::breakpoint"]
+        [::std::mem::offset_of!(kvm_vmi_arch_event_data, breakpoint) - 0usize];
 };
 impl Default for kvm_vmi_arch_event_data {
     fn default() -> Self {
@@ -230,9 +306,9 @@ pub struct kvm_vmi_control_event {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of kvm_vmi_control_event"][::std::mem::size_of::<kvm_vmi_control_event>() - 8usize];
+    ["Size of kvm_vmi_control_event"][::std::mem::size_of::<kvm_vmi_control_event>() - 24usize];
     ["Alignment of kvm_vmi_control_event"]
-        [::std::mem::align_of::<kvm_vmi_control_event>() - 4usize];
+        [::std::mem::align_of::<kvm_vmi_control_event>() - 8usize];
     ["Offset of field: kvm_vmi_control_event::event"]
         [::std::mem::offset_of!(kvm_vmi_control_event, event) - 0usize];
     ["Offset of field: kvm_vmi_control_event::enable"]
@@ -532,7 +608,7 @@ pub union kvm_vmi_ring_event__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of kvm_vmi_ring_event__bindgen_ty_1"]
-        [::std::mem::size_of::<kvm_vmi_ring_event__bindgen_ty_1>() - 16usize];
+        [::std::mem::size_of::<kvm_vmi_ring_event__bindgen_ty_1>() - 24usize];
     ["Alignment of kvm_vmi_ring_event__bindgen_ty_1"]
         [::std::mem::align_of::<kvm_vmi_ring_event__bindgen_ty_1>() - 8usize];
     ["Offset of field: kvm_vmi_ring_event__bindgen_ty_1::mem_access"]
@@ -555,7 +631,7 @@ impl Default for kvm_vmi_ring_event__bindgen_ty_1 {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of kvm_vmi_ring_event"][::std::mem::size_of::<kvm_vmi_ring_event>() - 432usize];
+    ["Size of kvm_vmi_ring_event"][::std::mem::size_of::<kvm_vmi_ring_event>() - 440usize];
     ["Alignment of kvm_vmi_ring_event"][::std::mem::align_of::<kvm_vmi_ring_event>() - 8usize];
     ["Offset of field: kvm_vmi_ring_event::type_"]
         [::std::mem::offset_of!(kvm_vmi_ring_event, type_) - 0usize];
@@ -572,7 +648,7 @@ const _: () = {
     ["Offset of field: kvm_vmi_ring_event::response"]
         [::std::mem::offset_of!(kvm_vmi_ring_event, response) - 20usize];
     ["Offset of field: kvm_vmi_ring_event::regs"]
-        [::std::mem::offset_of!(kvm_vmi_ring_event, regs) - 40usize];
+        [::std::mem::offset_of!(kvm_vmi_ring_event, regs) - 48usize];
 };
 impl Default for kvm_vmi_ring_event {
     fn default() -> Self {
@@ -587,7 +663,7 @@ pub const kvm_sys_KVM_CREATE_VMI: ::std::os::raw::c_ulong = 44777;
 pub const kvm_sys_KVM_VMI_SETUP_RING: ::std::os::raw::c_ulong = 3222843114;
 pub const kvm_sys_KVM_VMI_TEARDOWN_RING: ::std::os::raw::c_ulong = 1074048747;
 pub const kvm_sys_KVM_VMI_ACK_EVENT: ::std::os::raw::c_ulong = 1074310892;
-pub const kvm_sys_KVM_VMI_CONTROL_EVENT: ::std::os::raw::c_ulong = 1074310893;
+pub const kvm_sys_KVM_VMI_CONTROL_EVENT: ::std::os::raw::c_ulong = 1075359469;
 pub const kvm_sys_KVM_VMI_PAUSE_VM: ::std::os::raw::c_ulong = 44782;
 pub const kvm_sys_KVM_VMI_UNPAUSE_VM: ::std::os::raw::c_ulong = 44783;
 pub const kvm_sys_KVM_VMI_PAUSE_VCPU: ::std::os::raw::c_ulong = 1074310896;
@@ -603,4 +679,5 @@ pub const kvm_sys_KVM_VMI_FREE_GFN: ::std::os::raw::c_ulong = 1074310905;
 pub const kvm_sys_KVM_VMI_CHANGE_GFN: ::std::os::raw::c_ulong = 1075359482;
 pub const kvm_sys_KVM_GET_ONE_REG: ::std::os::raw::c_ulong = 1074835115;
 pub const kvm_sys_KVM_SET_ONE_REG: ::std::os::raw::c_ulong = 1074835116;
+pub const kvm_sys_KVM_VMI_EVENT_BREAKPOINT: ::std::os::raw::c_uint = 9;
 pub const kvm_sys_KVM_VMI_INVALID_GFN: ::std::os::raw::c_longlong = -1;
