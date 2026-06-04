@@ -11,7 +11,7 @@ pub const PAGE_SIZE: usize = 4096;
 /// works in. The kernel rejects an mmap offset that is not a multiple of it,
 /// and the vmi_fd fault handler reads `pgoff = offset >> host_page_shift` as a
 /// KVM gfn, whose frame size is this host page size.
-fn host_page_size() -> usize {
+pub fn host_page_size() -> usize {
     // SAFETY: sysconf(_SC_PAGESIZE) is always valid and returns a positive
     // power-of-two page size on every supported host.
     let size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) };
@@ -22,8 +22,10 @@ fn host_page_size() -> usize {
 ///
 /// On a host whose page size exceeds the guest page (for example a 16K-page
 /// arm64 host introspecting a 4K-page guest) the underlying mmap covers the
-/// enclosing host page, while the slice exposed to callers is the guest page
-/// window inside it.
+/// enclosing host page. For an ordinary guest gfn the slice exposed to callers
+/// is the guest page window inside that host page. For a shadow gfn (a
+/// host-page kernel allocation) the slice is the full host page, so callers can
+/// read and write all of the shadow that replaces the enclosing host frame.
 pub struct KvmMappedPage {
     /// Start of the underlying mmap (host-page aligned), for munmap.
     base: *mut u8,
@@ -101,10 +103,10 @@ impl KvmGuestMemory {
         // recovers the exact key, and expose a guest-page window at the start of
         // the host page. On a host whose page size equals the guest granule both
         // branches coincide.
-        let (aligned, sub) = if gfn >= kvm_sys::KVM_VMI_SHADOW_GFN_BASE {
+        let shadow = gfn >= kvm_sys::KVM_VMI_SHADOW_GFN_BASE;
+        let (aligned, sub) = if shadow {
             (gfn << host_shift, 0usize)
-        }
-        else {
+        } else {
             // Align the guest PA down to the enclosing host page and expose the
             // guest page window inside it.
             let guest_pa = gfn << page_shift;
@@ -112,7 +114,13 @@ impl KvmGuestMemory {
             let sub = (guest_pa - aligned) as usize;
             (aligned, sub)
         };
-        let base_len = (sub + guest_page).next_multiple_of(host_page);
+
+        // A shadow gfn replaces a whole host frame, so expose the full host page
+        // and let callers read and write all of it. An ordinary guest gfn
+        // exposes only its guest page window. On a host whose page size equals
+        // the guest granule both windows are identical.
+        let window = if shadow { host_page } else { guest_page };
+        let base_len = (sub + window).next_multiple_of(host_page);
 
         // SAFETY: standard mmap; null addr lets the kernel choose.
         let base = unsafe {
@@ -133,7 +141,7 @@ impl KvmGuestMemory {
             base_len,
             // SAFETY: sub < base_len, so this stays inside the mapping.
             ptr: unsafe { (base as *mut u8).add(sub) },
-            len: guest_page,
+            len: window,
         })
     }
 }

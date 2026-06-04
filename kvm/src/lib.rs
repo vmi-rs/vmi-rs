@@ -26,7 +26,7 @@ pub use self::{
         KvmEventReason, KvmMemAccessEvent, KvmResponseAction, KvmSinglestepEvent, KvmVmiEvent,
         KvmVmiRegs, KvmVmiResponse,
     },
-    memory::{KvmGuestMemory, KvmMappedPage},
+    memory::{KvmGuestMemory, KvmMappedPage, host_page_size},
     ring::KvmVmiRing,
     session::KvmVmi,
     vcpu::KvmVcpu,
