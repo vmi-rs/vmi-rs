@@ -18,14 +18,11 @@ pub fn host_page_size() -> usize {
     size as usize
 }
 
-/// One mmap'd guest page. Unmaps on drop.
+/// One mmap'd host page. Unmaps on drop.
 ///
-/// On a host whose page size exceeds the guest page (for example a 16K-page
-/// arm64 host introspecting a 4K-page guest) the underlying mmap covers the
-/// enclosing host page. For an ordinary guest gfn the slice exposed to callers
-/// is the guest page window inside that host page. For a shadow gfn (a
-/// host-page kernel allocation) the slice is the full host page, so callers can
-/// read and write all of the shadow that replaces the enclosing host frame.
+/// The vmi_fd mmap interface works in host pages, so the mapping always covers
+/// a whole host frame. Callers that want a smaller guest-page window narrow it
+/// at a higher layer (see [`VmiMappedPage::window`] in `vmi-core`).
 pub struct KvmMappedPage {
     /// Start of the underlying mmap (host-page aligned), for munmap.
     base: *mut u8,
@@ -33,21 +30,21 @@ pub struct KvmMappedPage {
     /// Length of the underlying mmap in bytes, for munmap.
     base_len: usize,
 
-    /// Start of the guest page window inside the mapping.
+    /// Start of the exposed bytes (equal to `base`).
     ptr: *mut u8,
 
-    /// Length of the guest page window in bytes.
+    /// Length of the exposed bytes in bytes (one host page).
     len: usize,
 }
 
 impl KvmMappedPage {
-    /// Returns the guest page bytes.
+    /// Returns the host page bytes.
     pub fn as_slice(&self) -> &[u8] {
-        // SAFETY: ptr/len address the guest page window inside the mapping.
+        // SAFETY: ptr/len address the host page mapping.
         unsafe { std::slice::from_raw_parts(self.ptr, self.len) }
     }
 
-    /// Returns the guest page bytes mutably.
+    /// Returns the host page bytes mutably.
     pub fn as_mut_slice(&mut self) -> &mut [u8] {
         // SAFETY: see as_slice; mapping is MAP_SHARED with PROT_WRITE.
         unsafe { std::slice::from_raw_parts_mut(self.ptr, self.len) }
@@ -67,17 +64,16 @@ impl Drop for KvmMappedPage {
     }
 }
 
-/// Maps guest pages on demand via `mmap` on the vmi_fd, translating a gfn into
+/// Maps host pages on demand via `mmap` on the vmi_fd, placing a host frame at
 /// the host-page-aligned offset the kernel fault handler expects.
 pub struct KvmGuestMemory;
 
 impl KvmGuestMemory {
-    /// Maps a single guest page identified by `gfn`. `write` selects
+    /// Maps a single host page identified by `hfn`. `write` selects
     /// PROT_READ|PROT_WRITE vs PROT_READ.
     pub fn map_page(
         vmi_fd: BorrowedFd,
-        gfn: u64,
-        page_shift: u8,
+        hfn: u64,
         write: bool,
     ) -> Result<KvmMappedPage, KvmError> {
         let prot = if write {
@@ -86,47 +82,20 @@ impl KvmGuestMemory {
             libc::PROT_READ
         };
 
-        // The caller asks for the guest page identified by `gfn` in its own
-        // granule (`1 << page_shift`). The vmi_fd mmap interface, however,
-        // works in host pages: the offset must be host-page aligned or the
-        // kernel returns EINVAL, and the fault handler reads `gfn = vmf->pgoff
-        // = offset >> host_page_shift` as the KVM gfn to resolve.
-        let guest_page = 1usize << page_shift;
+        // The vmi_fd mmap interface works in host pages: `hfn` names the host
+        // frame, the offset must be host-page aligned, and the fault handler
+        // reads `gfn = vmf->pgoff = offset >> host_page_shift`. A shadow gfn from
+        // alloc_gfn is already a host-page key, and a normal host frame derived
+        // from a guest gfn is too, so both place at `hfn << host_shift`.
         let host_page = host_page_size();
         let host_shift = host_page.trailing_zeros();
-
-        // A shadow gfn returned by `alloc_gfn` is already a host-page gfn in the
-        // kernel's `shadow_pages` xarray, keyed verbatim by `vmf->pgoff`. The
-        // guest-to-host page-unit conversion below must not be applied to it, or
-        // `pgoff` no longer matches the xarray key and the fault handler raises
-        // SIGBUS. Place it at `offset = shadow_gfn << host_shift` so the kernel
-        // recovers the exact key, and expose a guest-page window at the start of
-        // the host page. On a host whose page size equals the guest granule both
-        // branches coincide.
-        let shadow = gfn >= kvm_sys::KVM_VMI_SHADOW_GFN_BASE;
-        let (aligned, sub) = if shadow {
-            (gfn << host_shift, 0usize)
-        } else {
-            // Align the guest PA down to the enclosing host page and expose the
-            // guest page window inside it.
-            let guest_pa = gfn << page_shift;
-            let aligned = guest_pa & !(host_page as u64 - 1);
-            let sub = (guest_pa - aligned) as usize;
-            (aligned, sub)
-        };
-
-        // A shadow gfn replaces a whole host frame, so expose the full host page
-        // and let callers read and write all of it. An ordinary guest gfn
-        // exposes only its guest page window. On a host whose page size equals
-        // the guest granule both windows are identical.
-        let window = if shadow { host_page } else { guest_page };
-        let base_len = (sub + window).next_multiple_of(host_page);
+        let aligned = hfn << host_shift;
 
         // SAFETY: standard mmap; null addr lets the kernel choose.
         let base = unsafe {
             libc::mmap(
                 std::ptr::null_mut(),
-                base_len,
+                host_page,
                 prot,
                 libc::MAP_SHARED,
                 vmi_fd.as_raw_fd(),
@@ -138,10 +107,9 @@ impl KvmGuestMemory {
         }
         Ok(KvmMappedPage {
             base: base as *mut u8,
-            base_len,
-            // SAFETY: sub < base_len, so this stays inside the mapping.
-            ptr: unsafe { (base as *mut u8).add(sub) },
-            len: window,
+            base_len: host_page,
+            ptr: base as *mut u8,
+            len: host_page,
         })
     }
 }
