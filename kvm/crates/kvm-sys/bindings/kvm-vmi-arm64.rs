@@ -520,6 +520,22 @@ const _: () = {
     ["Offset of field: kvm_vmi_change_gfn::new_gfn"]
         [::std::mem::offset_of!(kvm_vmi_change_gfn, new_gfn) - 16usize];
 };
+#[doc = " struct kvm_vmi_mem_info - Guest RAM extent\n @max_gfn: out: exclusive upper-bound GFN of guest RAM, computed as the\n           maximum of base_gfn + npages over all memslots. Frames at or above\n           this bound (but below KVM_VMI_SHADOW_GFN_BASE) are not backed by\n           guest memory, so the agent rejects reads of them instead of\n           faulting the vmi_fd mmap.\n @pad: Reserved, set to zero."]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_mem_info {
+    pub max_gfn: __u64,
+    pub pad: __u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_mem_info"][::std::mem::size_of::<kvm_vmi_mem_info>() - 16usize];
+    ["Alignment of kvm_vmi_mem_info"][::std::mem::align_of::<kvm_vmi_mem_info>() - 8usize];
+    ["Offset of field: kvm_vmi_mem_info::max_gfn"]
+        [::std::mem::offset_of!(kvm_vmi_mem_info, max_gfn) - 0usize];
+    ["Offset of field: kvm_vmi_mem_info::pad"]
+        [::std::mem::offset_of!(kvm_vmi_mem_info, pad) - 8usize];
+};
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct kvm_vmi_event_mem_access {
@@ -686,6 +702,7 @@ pub const kvm_sys_KVM_VMI_SET_MEM_ACCESS: ::std::os::raw::c_ulong = 1075359479;
 pub const kvm_sys_KVM_VMI_ALLOC_GFN: ::std::os::raw::c_ulong = 3221794552;
 pub const kvm_sys_KVM_VMI_FREE_GFN: ::std::os::raw::c_ulong = 1074310905;
 pub const kvm_sys_KVM_VMI_CHANGE_GFN: ::std::os::raw::c_ulong = 1075359482;
+pub const kvm_sys_KVM_VMI_GET_MEM_INFO: ::std::os::raw::c_ulong = 2148577019;
 pub const kvm_sys_KVM_GET_ONE_REG: ::std::os::raw::c_ulong = 1074835115;
 pub const kvm_sys_KVM_SET_ONE_REG: ::std::os::raw::c_ulong = 1074835116;
 pub const kvm_sys_KVM_VMI_EVENT_BREAKPOINT: ::std::os::raw::c_uint = 9;

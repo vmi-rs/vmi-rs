@@ -205,6 +205,16 @@ impl KvmVmi {
         Ok(())
     }
 
+    /// Returns the guest RAM extent: the exclusive upper-bound GFN, the maximum
+    /// of `base_gfn + npages` over all memslots. Frames at or above this bound
+    /// (and below [`crate::sys::KVM_VMI_SHADOW_GFN_BASE`]) are not backed by
+    /// guest RAM, so reading them would fault the vmi_fd mmap.
+    pub fn mem_info(&self) -> Result<u64, KvmError> {
+        let mut arg = kvm_sys::kvm_vmi_mem_info::default();
+        ioctl_with_mut_ref(self.fd(), kvm_sys::KVM_VMI_GET_MEM_INFO, &mut arg)?;
+        Ok(arg.max_gfn)
+    }
+
     /// Injects an exception/interrupt/NMI into a vCPU.
     pub fn inject_event(&self, event: KvmInjectEvent) -> Result<(), KvmError> {
         let arg = event.to_sys();

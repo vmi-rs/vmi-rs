@@ -22,6 +22,7 @@ static const unsigned long kvm_sys_KVM_VMI_SET_MEM_ACCESS = KVM_VMI_SET_MEM_ACCE
 static const unsigned long kvm_sys_KVM_VMI_ALLOC_GFN = KVM_VMI_ALLOC_GFN;
 static const unsigned long kvm_sys_KVM_VMI_FREE_GFN = KVM_VMI_FREE_GFN;
 static const unsigned long kvm_sys_KVM_VMI_CHANGE_GFN = KVM_VMI_CHANGE_GFN;
+static const unsigned long kvm_sys_KVM_VMI_GET_MEM_INFO = KVM_VMI_GET_MEM_INFO;
 
 #if defined(__x86_64__) || defined(__i386__)
 static const unsigned long kvm_sys_KVM_GET_REGS = KVM_GET_REGS;
