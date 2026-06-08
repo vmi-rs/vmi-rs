@@ -705,5 +705,6 @@ pub const kvm_sys_KVM_VMI_CHANGE_GFN: ::std::os::raw::c_ulong = 1075359482;
 pub const kvm_sys_KVM_VMI_GET_MEM_INFO: ::std::os::raw::c_ulong = 2148577019;
 pub const kvm_sys_KVM_GET_ONE_REG: ::std::os::raw::c_ulong = 1074835115;
 pub const kvm_sys_KVM_SET_ONE_REG: ::std::os::raw::c_ulong = 1074835116;
+pub const kvm_sys_KVM_VMI_EVENT_SYSREG: ::std::os::raw::c_uint = 8;
 pub const kvm_sys_KVM_VMI_EVENT_BREAKPOINT: ::std::os::raw::c_uint = 9;
 pub const kvm_sys_KVM_VMI_INVALID_GFN: ::std::os::raw::c_longlong = -1;

@@ -56,4 +56,5 @@ pub use self::{
 pub use self::{
     kvm_sys_KVM_GET_ONE_REG as KVM_GET_ONE_REG, kvm_sys_KVM_SET_ONE_REG as KVM_SET_ONE_REG,
     kvm_sys_KVM_VMI_EVENT_BREAKPOINT as KVM_VMI_EVENT_BREAKPOINT,
+    kvm_sys_KVM_VMI_EVENT_SYSREG as KVM_VMI_EVENT_SYSREG,
 };

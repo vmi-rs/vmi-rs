@@ -120,11 +120,17 @@ impl From<&KvmVmiRegsArm64> for kvm_sys::kvm_vmi_regs {
     }
 }
 
-/// Payload of a sysreg-access event.
+/// Payload of a sysreg-write event.
 #[derive(Debug, Clone, Copy)]
 pub struct KvmSysregEvent {
-    /// Encoded system register id.
+    /// Encoded system register id (`KVM_VMI_SYSREG_*`).
     pub reg: u64,
+
+    /// Register value before the (deferred) write.
+    pub old_value: u64,
+
+    /// Value the guest is writing (observe-only).
+    pub new_value: u64,
 }
 
 /// Payload of a software breakpoint event.
@@ -170,6 +176,14 @@ pub(crate) fn decode_event(slot: &kvm_sys::kvm_vmi_ring_event) -> Result<KvmVmiE
         let bp = unsafe { slot.__bindgen_anon_1.arch.breakpoint };
         KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(KvmBreakpointEvent {
             gpa: bp.ipa,
+        }))
+    } else if kind == kvm_sys::KVM_VMI_EVENT_SYSREG {
+        // SAFETY: type_ selects the arch.sysreg arm.
+        let sr = unsafe { slot.__bindgen_anon_1.arch.sysreg };
+        KvmEventReason::Arch(KvmEventReasonArm64::Sysreg(KvmSysregEvent {
+            reg: u64::from(sr.reg),
+            old_value: sr.old_value,
+            new_value: sr.new_value,
         }))
     } else {
         return Err(KvmError::Other("unknown event type"));
@@ -223,6 +237,26 @@ mod decode_tests {
         match decode_event(&slot).unwrap().reason {
             KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(bp)) => {
                 assert_eq!(bp.gpa, 0xcafe000);
+            }
+            other => panic!("wrong reason: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn decodes_sysreg() {
+        let mut slot = empty_slot();
+        slot.type_ = kvm_sys::KVM_VMI_EVENT_SYSREG;
+        slot.__bindgen_anon_1.arch.sysreg = kvm_sys::kvm_vmi_event_sysreg {
+            reg: kvm_sys::KVM_VMI_SYSREG_TTBR0_EL1,
+            pad: 0,
+            old_value: 0x1000,
+            new_value: 0x2000,
+        };
+        match decode_event(&slot).unwrap().reason {
+            KvmEventReason::Arch(KvmEventReasonArm64::Sysreg(sr)) => {
+                assert_eq!(sr.reg, u64::from(kvm_sys::KVM_VMI_SYSREG_TTBR0_EL1));
+                assert_eq!(sr.old_value, 0x1000);
+                assert_eq!(sr.new_value, 0x2000);
             }
             other => panic!("wrong reason: {other:?}"),
         }

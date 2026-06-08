@@ -52,6 +52,7 @@ static const unsigned kvm_sys_KVM_VMI_EVENT_IO = KVM_VMI_EVENT_IO;
 #endif
 
 #if defined(__aarch64__)
+static const unsigned kvm_sys_KVM_VMI_EVENT_SYSREG = KVM_VMI_EVENT_SYSREG;
 static const unsigned kvm_sys_KVM_VMI_EVENT_BREAKPOINT = KVM_VMI_EVENT_BREAKPOINT;
 #endif
 

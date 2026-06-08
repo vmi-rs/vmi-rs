@@ -2,9 +2,9 @@
 
 /// A monitor-control request for arm64: which event to enable/disable.
 ///
-/// The arm64 uAPI defines a `kvm_vmi_arch_control_data` union for future
-/// arch-specific parameters. None of the variants implemented here carry
-/// arch-specific data, so all use the zeroed control data.
+/// The arm64 uAPI defines a `kvm_vmi_arch_control_data` union for arch-specific
+/// parameters. Only `Sysreg` carries such data, the others use the zeroed
+/// control data.
 #[derive(Debug, Clone, Copy)]
 pub enum KvmControl {
     /// Single-step trap interception.
@@ -18,6 +18,19 @@ pub enum KvmControl {
 
     /// Software-breakpoint (`BRK`) interception.
     Breakpoint,
+
+    /// System-register write interception (e.g. `TTBR0_EL1`).
+    Sysreg {
+        /// `KVM_VMI_SYSREG_*` register index.
+        reg: u32,
+
+        /// Deliver only when the value changes.
+        onchangeonly: bool,
+
+        /// Fire only when `((old ^ new) & bitmask) != 0`. A `0` mask fires on
+        /// any change.
+        bitmask: u64,
+    },
 }
 
 impl KvmControl {
@@ -28,15 +41,30 @@ impl KvmControl {
             KvmControl::Hypercall => kvm_sys::KVM_VMI_EVENT_HYPERCALL,
             KvmControl::MemAccess => kvm_sys::KVM_VMI_EVENT_MEM_ACCESS,
             KvmControl::Breakpoint => kvm_sys::KVM_VMI_EVENT_BREAKPOINT,
+            KvmControl::Sysreg { .. } => kvm_sys::KVM_VMI_EVENT_SYSREG,
         }
     }
 
     /// Returns the arch control-data union for this control.
     ///
-    /// None of the implemented controls carries arch-specific data, so this
-    /// returns the zeroed default.
+    /// Only `Sysreg` carries arch-specific data, so every other control returns
+    /// the zeroed default.
     pub(crate) fn arch_data(&self) -> kvm_sys::kvm_vmi_arch_control_data {
-        kvm_sys::kvm_vmi_arch_control_data::default()
+        match self {
+            KvmControl::Sysreg {
+                reg,
+                onchangeonly,
+                bitmask,
+            } => kvm_sys::kvm_vmi_arch_control_data {
+                sysreg: kvm_sys::kvm_vmi_arch_control_data__bindgen_ty_1 {
+                    reg: *reg as u8,
+                    onchangeonly: u8::from(*onchangeonly),
+                    pad: [0; 6],
+                    bitmask: *bitmask,
+                },
+            },
+            _ => kvm_sys::kvm_vmi_arch_control_data::default(),
+        }
     }
 }
 
@@ -115,6 +143,20 @@ mod tests {
             KvmControl::Breakpoint.event_id(),
             kvm_sys::KVM_VMI_EVENT_BREAKPOINT
         );
+    }
+
+    #[test]
+    fn sysreg_control_targets_sysreg_event() {
+        let c = KvmControl::Sysreg {
+            reg: kvm_sys::KVM_VMI_SYSREG_TTBR0_EL1,
+            onchangeonly: true,
+            bitmask: 0,
+        };
+        assert_eq!(c.event_id(), kvm_sys::KVM_VMI_EVENT_SYSREG);
+        // SAFETY: single-member union.
+        let s = unsafe { c.arch_data().sysreg };
+        assert_eq!(u32::from(s.reg), kvm_sys::KVM_VMI_SYSREG_TTBR0_EL1);
+        assert_eq!(s.onchangeonly, 1);
     }
 
     #[test]
