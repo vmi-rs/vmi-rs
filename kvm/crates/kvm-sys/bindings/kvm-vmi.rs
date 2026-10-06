@@ -30,13 +30,13 @@ impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
         fmt.write_str("__IncompleteArrayField")
     }
 }
-pub const KVM_CAP_VMI: u32 = 248;
-pub const KVM_CAP_VMI_RING: u32 = 260;
-pub const KVM_CAP_VMI_GUEST_MMAP: u32 = 261;
-pub const KVM_CAP_VMI_PAUSE: u32 = 262;
-pub const KVM_CAP_VMI_INJECT: u32 = 263;
-pub const KVM_CAP_VMI_ALLOC_GFN: u32 = 264;
-pub const KVM_CAP_VMI_EPT_PW: u32 = 265;
+pub const KVM_CAP_VMI: u32 = 500;
+pub const KVM_CAP_VMI_RING: u32 = 501;
+pub const KVM_CAP_VMI_GUEST_MMAP: u32 = 502;
+pub const KVM_CAP_VMI_PAUSE: u32 = 503;
+pub const KVM_CAP_VMI_INJECT: u32 = 504;
+pub const KVM_CAP_VMI_ALLOC_GFN: u32 = 505;
+pub const KVM_CAP_VMI_EPT_PW: u32 = 506;
 pub const KVM_VMI_EVENT_MEM_ACCESS: u32 = 0;
 pub const KVM_VMI_EVENT_SINGLESTEP: u32 = 1;
 pub const KVM_VMI_EVENT_HYPERCALL: u32 = 2;
@@ -726,6 +726,21 @@ const _: () = {
     ["Offset of field: kvm_vmi_setup_ring::pad"]
         [::std::mem::offset_of!(kvm_vmi_setup_ring, pad) - 20usize];
 };
+#[doc = " struct kvm_vmi_vcpu - Generic vCPU identifier for vmi_fd ioctls"]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_vcpu {
+    pub vcpu_id: __u32,
+    pub pad: __u32,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_vcpu"][::std::mem::size_of::<kvm_vmi_vcpu>() - 8usize];
+    ["Alignment of kvm_vmi_vcpu"][::std::mem::align_of::<kvm_vmi_vcpu>() - 4usize];
+    ["Offset of field: kvm_vmi_vcpu::vcpu_id"]
+        [::std::mem::offset_of!(kvm_vmi_vcpu, vcpu_id) - 0usize];
+    ["Offset of field: kvm_vmi_vcpu::pad"][::std::mem::offset_of!(kvm_vmi_vcpu, pad) - 4usize];
+};
 #[doc = " struct kvm_vmi_control_event - VM-wide event monitoring control\n @event: Event type (KVM_VMI_EVENT_*)\n @enable: 1 to enable, 0 to disable\n @arch: Architecture-specific event parameters"]
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -755,21 +770,6 @@ impl Default for kvm_vmi_control_event {
         }
     }
 }
-#[doc = " struct kvm_vmi_vcpu - Generic vCPU identifier for vmi_fd ioctls"]
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone)]
-pub struct kvm_vmi_vcpu {
-    pub vcpu_id: __u32,
-    pub pad: __u32,
-}
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of kvm_vmi_vcpu"][::std::mem::size_of::<kvm_vmi_vcpu>() - 8usize];
-    ["Alignment of kvm_vmi_vcpu"][::std::mem::align_of::<kvm_vmi_vcpu>() - 4usize];
-    ["Offset of field: kvm_vmi_vcpu::vcpu_id"]
-        [::std::mem::offset_of!(kvm_vmi_vcpu, vcpu_id) - 0usize];
-    ["Offset of field: kvm_vmi_vcpu::pad"][::std::mem::offset_of!(kvm_vmi_vcpu, pad) - 4usize];
-};
 #[doc = " struct kvm_vmi_view - Alternate memory view descriptor\n @view_id: View identifier. OUT on create (assigned by kernel), IN on destroy.\n           View 0 is always the default (host) view and cannot be created/destroyed.\n @flags: Reserved, must be zero.\n @default_access: Default R/W/X permissions for lazily-populated entries.\n                  Combination of KVM_VMI_ACCESS_R/W/X flags.\n @pad: Reserved padding, must be zero."]
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
@@ -806,6 +806,22 @@ const _: () = {
     ["Offset of field: kvm_vmi_switch_view::pad"]
         [::std::mem::offset_of!(kvm_vmi_switch_view, pad) - 4usize];
 };
+#[doc = " struct kvm_vmi_mem_info - Guest RAM extent\n @max_gfn: out: exclusive upper-bound GFN of guest RAM, computed as the\n           maximum of base_gfn + npages over all memslots. Frames at or above\n           this bound are not backed by\n           guest memory, so the agent rejects reads of them instead of\n           faulting the vmi_fd mmap.\n @pad: Reserved, set to zero."]
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_mem_info {
+    pub max_gfn: __u64,
+    pub pad: __u64,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_mem_info"][::std::mem::size_of::<kvm_vmi_mem_info>() - 16usize];
+    ["Alignment of kvm_vmi_mem_info"][::std::mem::align_of::<kvm_vmi_mem_info>() - 8usize];
+    ["Offset of field: kvm_vmi_mem_info::max_gfn"]
+        [::std::mem::offset_of!(kvm_vmi_mem_info, max_gfn) - 0usize];
+    ["Offset of field: kvm_vmi_mem_info::pad"]
+        [::std::mem::offset_of!(kvm_vmi_mem_info, pad) - 8usize];
+};
 #[doc = " struct kvm_vmi_mem_access - Memory access permissions for a view\n @view_id: Target view.\n @nr: Number of GFNs (0 or 1 for single-GFN, >1 for batch).\n\n Single-GFN mode (nr <= 1):\n   @gfn: The guest frame number.\n   @access: Combination of KVM_VMI_ACCESS_R/W/X flags.\n\n Batch mode (nr > 1):\n   @gfns_uaddr: Userspace pointer to __u64 array of GFNs.\n   @accesses_uaddr: Userspace pointer to __u8 array of access flags."]
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -825,7 +841,9 @@ pub union kvm_vmi_mem_access__bindgen_ty_1 {
 pub struct kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1 {
     pub gfn: __u64,
     pub access: __u8,
-    pub pad: [__u8; 7usize],
+    pub pad: __u8,
+    pub autostep_mask: __u16,
+    pub pad2: [__u8; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
@@ -839,6 +857,12 @@ const _: () = {
         [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, access) - 8usize];
     ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::pad"]
         [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, pad) - 9usize];
+    ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::autostep_mask"][::std::mem::offset_of!(
+        kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1,
+        autostep_mask
+    ) - 10usize];
+    ["Offset of field: kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1::pad2"]
+        [::std::mem::offset_of!(kvm_vmi_mem_access__bindgen_ty_1__bindgen_ty_1, pad2) - 12usize];
 };
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
@@ -975,6 +999,22 @@ const _: () = {
     ["Offset of field: kvm_vmi_event_singlestep::gpa"]
         [::std::mem::offset_of!(kvm_vmi_event_singlestep, gpa) - 0usize];
 };
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone)]
+pub struct kvm_vmi_event_hypercall {
+    pub imm: __u32,
+    pub pad: __u32,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of kvm_vmi_event_hypercall"][::std::mem::size_of::<kvm_vmi_event_hypercall>() - 8usize];
+    ["Alignment of kvm_vmi_event_hypercall"]
+        [::std::mem::align_of::<kvm_vmi_event_hypercall>() - 4usize];
+    ["Offset of field: kvm_vmi_event_hypercall::imm"]
+        [::std::mem::offset_of!(kvm_vmi_event_hypercall, imm) - 0usize];
+    ["Offset of field: kvm_vmi_event_hypercall::pad"]
+        [::std::mem::offset_of!(kvm_vmi_event_hypercall, pad) - 4usize];
+};
 #[doc = " struct kvm_vmi_ring_header - Ring page header\n @req_prod: Producer index (kernel increments after writing event)\n @req_cons: Consumer index (agent increments after reading event)\n @num_slots: Number of event slots in this ring\n @pad: Reserved padding"]
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
@@ -1016,6 +1056,7 @@ pub struct kvm_vmi_ring_event {
 pub union kvm_vmi_ring_event__bindgen_ty_1 {
     pub mem_access: kvm_vmi_event_mem_access,
     pub singlestep: kvm_vmi_event_singlestep,
+    pub hypercall: kvm_vmi_event_hypercall,
     pub arch: kvm_vmi_arch_event_data,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
@@ -1028,6 +1069,8 @@ const _: () = {
         [::std::mem::offset_of!(kvm_vmi_ring_event__bindgen_ty_1, mem_access) - 0usize];
     ["Offset of field: kvm_vmi_ring_event__bindgen_ty_1::singlestep"]
         [::std::mem::offset_of!(kvm_vmi_ring_event__bindgen_ty_1, singlestep) - 0usize];
+    ["Offset of field: kvm_vmi_ring_event__bindgen_ty_1::hypercall"]
+        [::std::mem::offset_of!(kvm_vmi_ring_event__bindgen_ty_1, hypercall) - 0usize];
     ["Offset of field: kvm_vmi_ring_event__bindgen_ty_1::arch"]
         [::std::mem::offset_of!(kvm_vmi_ring_event__bindgen_ty_1, arch) - 0usize];
 };
@@ -1075,19 +1118,20 @@ pub const kvm_sys_KVM_VMI_SETUP_RING: ::std::os::raw::c_ulong = 3222843114;
 pub const kvm_sys_KVM_VMI_TEARDOWN_RING: ::std::os::raw::c_ulong = 1074048747;
 pub const kvm_sys_KVM_VMI_ACK_EVENT: ::std::os::raw::c_ulong = 1074310892;
 pub const kvm_sys_KVM_VMI_CONTROL_EVENT: ::std::os::raw::c_ulong = 1075359469;
-pub const kvm_sys_KVM_VMI_PAUSE_VM: ::std::os::raw::c_ulong = 44782;
-pub const kvm_sys_KVM_VMI_UNPAUSE_VM: ::std::os::raw::c_ulong = 44783;
-pub const kvm_sys_KVM_VMI_PAUSE_VCPU: ::std::os::raw::c_ulong = 1074310896;
-pub const kvm_sys_KVM_VMI_UNPAUSE_VCPU: ::std::os::raw::c_ulong = 1074310897;
-pub const kvm_sys_KVM_VMI_INJECT_EVENT: ::std::os::raw::c_ulong = 1075359474;
-pub const kvm_sys_KVM_VMI_CREATE_VIEW: ::std::os::raw::c_ulong = 3222318835;
-pub const kvm_sys_KVM_VMI_DESTROY_VIEW: ::std::os::raw::c_ulong = 1074835188;
-pub const kvm_sys_KVM_VMI_SWITCH_VIEW: ::std::os::raw::c_ulong = 1074310901;
-pub const kvm_sys_KVM_VMI_GET_MEM_ACCESS: ::std::os::raw::c_ulong = 3222843126;
-pub const kvm_sys_KVM_VMI_SET_MEM_ACCESS: ::std::os::raw::c_ulong = 1075359479;
-pub const kvm_sys_KVM_VMI_ALLOC_GFN: ::std::os::raw::c_ulong = 3221794552;
-pub const kvm_sys_KVM_VMI_FREE_GFN: ::std::os::raw::c_ulong = 1074310905;
-pub const kvm_sys_KVM_VMI_CHANGE_GFN: ::std::os::raw::c_ulong = 1075359482;
+pub const kvm_sys_KVM_VMI_PAUSE_VM: ::std::os::raw::c_ulong = 44783;
+pub const kvm_sys_KVM_VMI_UNPAUSE_VM: ::std::os::raw::c_ulong = 44784;
+pub const kvm_sys_KVM_VMI_PAUSE_VCPU: ::std::os::raw::c_ulong = 1074310897;
+pub const kvm_sys_KVM_VMI_UNPAUSE_VCPU: ::std::os::raw::c_ulong = 1074310898;
+pub const kvm_sys_KVM_VMI_INJECT_EVENT: ::std::os::raw::c_ulong = 1075359475;
+pub const kvm_sys_KVM_VMI_CREATE_VIEW: ::std::os::raw::c_ulong = 3222318836;
+pub const kvm_sys_KVM_VMI_DESTROY_VIEW: ::std::os::raw::c_ulong = 1074835189;
+pub const kvm_sys_KVM_VMI_SWITCH_VIEW: ::std::os::raw::c_ulong = 1074310902;
+pub const kvm_sys_KVM_VMI_GET_MEM_ACCESS: ::std::os::raw::c_ulong = 3222843127;
+pub const kvm_sys_KVM_VMI_SET_MEM_ACCESS: ::std::os::raw::c_ulong = 1075359480;
+pub const kvm_sys_KVM_VMI_ALLOC_GFN: ::std::os::raw::c_ulong = 3221794553;
+pub const kvm_sys_KVM_VMI_FREE_GFN: ::std::os::raw::c_ulong = 1074310906;
+pub const kvm_sys_KVM_VMI_CHANGE_GFN: ::std::os::raw::c_ulong = 1075359483;
+pub const kvm_sys_KVM_VMI_GET_MEM_INFO: ::std::os::raw::c_ulong = 2148577006;
 pub const kvm_sys_KVM_GET_REGS: ::std::os::raw::c_ulong = 2156965505;
 pub const kvm_sys_KVM_SET_REGS: ::std::os::raw::c_ulong = 1083223682;
 pub const kvm_sys_KVM_GET_SREGS: ::std::os::raw::c_ulong = 2167975555;
