@@ -138,6 +138,9 @@ pub struct KvmSysregEvent {
 pub struct KvmBreakpointEvent {
     /// Guest-physical address of the breakpoint.
     pub gpa: u64,
+
+    /// Comment field of the `BRK` instruction (`ESR_ELx.ISS[15:0]`).
+    pub imm: u16,
 }
 
 /// arm64-specific event reasons, nested under `KvmEventReason::Arch`.
@@ -176,6 +179,7 @@ pub(crate) fn decode_event(slot: &kvm_sys::kvm_vmi_ring_event) -> Result<KvmVmiE
         let bp = unsafe { slot.__bindgen_anon_1.arch.breakpoint };
         KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(KvmBreakpointEvent {
             gpa: bp.ipa,
+            imm: bp.imm as u16,
         }))
     } else if kind == kvm_sys::KVM_VMI_EVENT_SYSREG {
         // SAFETY: type_ selects the arch.sysreg arm.
@@ -231,12 +235,13 @@ mod decode_tests {
         slot.type_ = kvm_sys::KVM_VMI_EVENT_BREAKPOINT;
         slot.__bindgen_anon_1.arch.breakpoint = kvm_sys::kvm_vmi_event_breakpoint {
             ipa: 0xcafe000,
-            imm: 0,
+            imm: 0xf000,
             pad: 0,
         };
         match decode_event(&slot).unwrap().reason {
             KvmEventReason::Arch(KvmEventReasonArm64::Breakpoint(bp)) => {
                 assert_eq!(bp.gpa, 0xcafe000);
+                assert_eq!(bp.imm, 0xf000);
             }
             other => panic!("wrong reason: {other:?}"),
         }
