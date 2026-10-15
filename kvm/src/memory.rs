@@ -71,11 +71,7 @@ pub struct KvmGuestMemory;
 impl KvmGuestMemory {
     /// Maps a single host page identified by `hfn`. `write` selects
     /// PROT_READ|PROT_WRITE vs PROT_READ.
-    pub fn map_page(
-        vmi_fd: BorrowedFd,
-        hfn: u64,
-        write: bool,
-    ) -> Result<KvmMappedPage, KvmError> {
+    pub fn map_page(vmi_fd: BorrowedFd, hfn: u64, write: bool) -> Result<KvmMappedPage, KvmError> {
         let prot = if write {
             libc::PROT_READ | libc::PROT_WRITE
         } else {
