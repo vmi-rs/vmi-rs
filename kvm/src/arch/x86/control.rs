@@ -27,7 +27,13 @@ pub enum KvmControl {
     },
 
     /// MSR write monitoring for one MSR index.
-    Msr(u32),
+    Msr {
+        /// Index of the monitored MSR.
+        msr: u32,
+
+        /// Only report writes that change the value.
+        on_change_only: bool,
+    },
 
     /// CPUID interception.
     CpuId,
@@ -53,7 +59,7 @@ impl KvmControl {
     pub(crate) fn event_id(&self) -> u32 {
         match self {
             KvmControl::Cr { .. } => kvm_sys::KVM_VMI_EVENT_CR,
-            KvmControl::Msr(_) => kvm_sys::KVM_VMI_EVENT_MSR,
+            KvmControl::Msr { .. } => kvm_sys::KVM_VMI_EVENT_MSR,
             KvmControl::CpuId => kvm_sys::KVM_VMI_EVENT_CPUID,
             KvmControl::Io => kvm_sys::KVM_VMI_EVENT_IO,
             KvmControl::Breakpoint => kvm_sys::KVM_VMI_EVENT_BREAKPOINT,
@@ -74,8 +80,12 @@ impl KvmControl {
                 arch.cr.index = reg.index() as u8;
                 arch.cr.onchangeonly = u8::from(*on_change_only);
             }
-            KvmControl::Msr(msr) => {
+            KvmControl::Msr {
+                msr,
+                on_change_only,
+            } => {
                 arch.msr.msr = *msr;
+                arch.msr.onchangeonly = u8::from(*on_change_only);
             }
             KvmControl::CpuId
             | KvmControl::Io
